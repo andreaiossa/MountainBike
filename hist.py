@@ -2,6 +2,7 @@ from cv2 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 import segmentation
+import yolo
 
 
 def background(video, start, end, tresh, show=False):
@@ -93,7 +94,7 @@ def compute_hist(reference, img, mask, metric, show=False):
 
 
 img, mask = background('./files/videos/single_green_jump.mp4', 1400, 45, 100, show=True)
-mask = remove_noise(mask, 5, 1, 1)
-result = compute_hist("./files/imgs/blue_front.jpg", img, mask, cv2.HISTCMP_CHISQR, show=False)
+# mask = remove_noise(mask, 5, 1, 1)
+# result = compute_hist("./files/imgs/black_front.jpg", img, mask, cv2.HISTCMP_CHISQR, show=False)
 
-print(result)
+# print(result)
