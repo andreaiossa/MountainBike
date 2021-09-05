@@ -7,7 +7,10 @@ from os.path import isfile
 from PIL import Image
 
 
-def create_predictor():
+def instantiatePredictor():
+    '''
+    Instantiate detectron2 Mask rcnn predictor from web
+    '''
     print("Generating predicor...")
     cfg = get_cfg()
     if (isfile("./config.yaml")):
@@ -25,28 +28,35 @@ def create_predictor():
     return predictor
 
 
-def compute_mask(image, predictor, refined=False, visualize=False):
+def computeSegmentationMask(image, predictor, refine=False):
+    '''
+    Compute segmentation on the image, return first mask obtained from detectron. Possible to refine the output mask using grabcut
+    '''
     print("computing rough mask...")
-    im = cv2.imread(image)
+    im = cv2.imread(image) if isinstance(image, str) else image
     outputs = predictor(im)
 
     print("classes found: {}".format(outputs["instances"].pred_classes))
 
-    mask = outputs["instances"].pred_masks[0]
-    mask = np.array(mask.cpu(), dtype=np.uint8)
+    if len(outputs["instances"].pred_masks) > 0:
+        mask = outputs["instances"].pred_masks[0]
+        mask = np.array(mask.cpu(), dtype=np.uint8)
 
-    if (refined):
-        print("refining mask...")
-        mask = refine(mask, im)
-        print("done")
+        mask = Image.fromarray(mask * 255)
+        mask.save("./files/temp/mask.jpg")
+        mask = cv2.imread("./files/temp/mask.jpg", cv2.IMREAD_GRAYSCALE)
 
-    return mask
+        if (refine):
+            print("refining mask...")
+            mask = refineMask(mask, im)
+            print("done")
+
+        return mask
+    else:
+        return False
 
 
-def refine(mask, im):
-    mask = Image.fromarray(mask * 255)
-    mask.save("./files/temp/mask.jpg")
-    mask = cv2.imread("./files/temp/mask.jpg", cv2.IMREAD_GRAYSCALE)
+def refineMask(mask, im):
     mask[mask > 0] = cv2.GC_PR_FGD
     mask[mask == 0] = cv2.GC_BGD
     fgModel = np.zeros((1, 65), dtype="float")

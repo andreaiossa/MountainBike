@@ -1,22 +1,31 @@
 from cv2 import LINE_AA, cv2
 import numpy as np
 from matplotlib import pyplot as plt
-import segmentation
 
 
-def instantiate_yolo():
+def instantiateYolo():
+    '''
+    Instantiate yolo network from config file and weights file
+    '''
+
+    print("ISTANTIATING YOLO NETWORK...")
     np.random.seed(42)
     classes = open('coco.names').read().strip().split('\n')
     COLORS = np.random.randint(0, 255, size=(len(classes), 3), dtype='uint8')
     net = cv2.dnn.readNetFromDarknet('./yolo/yolov3.cfg', './yolo/yolov3.weights')
-    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
     ln = net.getLayerNames()
     ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+    print("DONE")
 
     return classes, COLORS, net, ln
 
 
-def identification(img, h, w, net, ln):
+def yoloIdentification(img, h, w, net, ln):
+    '''
+    Returns full output of yolo nwtwork on given image
+    '''
     blob = cv2.dnn.blobFromImage(img, 1 / 255.0, (416, 416), swapRB=True, crop=False)
     net.setInput(blob)
     outputs = net.forward(ln)
@@ -46,6 +55,10 @@ def identification(img, h, w, net, ln):
 
 
 def draw_boxes(img, indices, boxes, COLORS, classIDs, classes, confidences):
+    '''
+    Given the image which was given to the network it draws the bounding boxes onto it. image must be of same dimension, dont use the image to future to compute mask.
+    '''
+    boxImg = img
     if len(indices) > 0:
         for i in indices.flatten():
             (x, y) = (boxes[i][0], boxes[i][1])
@@ -55,17 +68,20 @@ def draw_boxes(img, indices, boxes, COLORS, classIDs, classes, confidences):
             text = "{}: {:.4f}".format(classes[classIDs[i]], confidences[i])
             cv2.putText(img, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
+    return boxImg
 
-img = cv2.imread("./files/imgs/green_back.jpg")
-(H, W) = img.shape[:2]
-H = int(H / 3)
-W = int(W / 3)
-img = cv2.resize(img, (W, H))
 
-(classes, COLORS, net, ln) = instantiate_yolo()
-(boxes, confidences, classIDs, indices) = identification(img, H, W, net, ln)
-draw_boxes(img, indices, boxes, COLORS, classIDs, classes, confidences)
+def computeBBoxMask(im, box, refine=False):
+    '''
+    Given a bounding box in the image (computed using yolo) it returs a probable mask with grabCut.
+    '''
+    fgModel = np.zeros((1, 65), dtype="float")
+    bgModel = np.zeros((1, 65), dtype="float")
+    mask = np.zeros(im.shape[:2], dtype="uint8")
 
-cv2.imshow('window', img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    (outputMask, bgModel, fgModel) = cv2.grabCut(im, mask, box, bgModel, fgModel, iterCount=5, mode=cv2.GC_INIT_WITH_RECT)
+    if refine:
+        outputMask = np.where((outputMask == cv2.GC_BGD) | (outputMask == cv2.GC_PR_BGD), 0, 1)
+        outputMask = (outputMask * 255).astype("uint8")
+
+    return outputMask
