@@ -1,6 +1,10 @@
 from cv2 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
+import os
+from datetime import datetime
+
+SAVE_FOLDER = "./files/temp"
 
 
 def removeMaskNoise(mask, radius, iteration1, iteration2):
@@ -19,7 +23,6 @@ def backgroundSub(video, start, end, tresh, show=False):
     '''
     Given a video, the starting frame, the number of frames to parse and the treshold of the BS, it gives the last image and mask for future use.
     '''
-
     cap = cv2.VideoCapture(video)
     length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -56,10 +59,15 @@ def backgroundSub(video, start, end, tresh, show=False):
     return frame, fgmask
 
 
-def bboxBackgroundSub(video, start, end, tresh, show=False, verbose=False):
+def bboxBackgroundSub(video, start, end, tresh, show=False, verbose=False, save=False):
     '''
     Given a video, the starting frame, the number of frames to parse and the treshold of the BS, it gives the last image and mask for future use.
     '''
+
+    if save:
+        now = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
+        newPath = SAVE_FOLDER + f"/BS_{now}"
+        os.makedirs(newPath)
 
     cap = cv2.VideoCapture(video)
     length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -81,6 +89,7 @@ def bboxBackgroundSub(video, start, end, tresh, show=False, verbose=False):
     newRider = True
     previusCut = None
     previusRider = None
+    previusMask = None
     previusPercentage = 0
 
     while (counter < end - 1):
@@ -118,13 +127,17 @@ def bboxBackgroundSub(video, start, end, tresh, show=False, verbose=False):
                 if percentageDiff > previusPercentage:
                     previusCut = cut
                     previusRider = subFrame
+                    previusMask = fgmask
                 else:
                     if newRider:
                         riderCounter += 1
                         print(f"[INFO] Rider found with {previusPercentage}")
                         riders.append(previusRider)
                         ridersBS.append(previusCut)
-                        ridersMasks.append(fgmask)
+                        ridersMasks.append(previusMask)
+                        if save:
+                            cv2.imwrite(os.path.join(newPath, f'rider_{riderCounter}.jpg'), previusRider)
+                            cv2.imwrite(os.path.join(newPath, f'rider_mask_{riderCounter}.jpg'), previusMask)
                         newRider = False
 
                 previusPercentage = percentageDiff

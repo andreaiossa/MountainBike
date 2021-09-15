@@ -18,6 +18,12 @@ def computeHist(img, mask=None, normalize=False):
     '''
     Given img (BGR) and mask return the 8 bins histogram in HS color space
     '''
+    print(mask)
+
+    if isinstance(mask, bool):
+        print("[WARNING] Impossible to compute histograms, given mask is empty")
+        return
+
     img = cv2.imread(img) if isinstance(img, str) else img
     static_image_HSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 

@@ -28,18 +28,22 @@ def instantiatePredictor():
     return predictor
 
 
-def computeSegmentationMask(image, predictor, refine=False):
+def computeSegmentationMask(image, predictor, refine=False, CocoClass=0):
     '''
-    Compute segmentation on the image, return first mask obtained from detectron. Possible to refine the output mask using grabcut
+    Compute segmentation on the image, return first mask obtained from detectron. Possible to refine the output mask using grabcut. CocoClass default is 0 (person), use 1 for bicycle and 24 for backpack
     '''
     print("computing rough mask...")
     im = cv2.imread(image) if isinstance(image, str) else image
     outputs = predictor(im)
+    instances = outputs["instances"]
+    instancesOfClass = instances[instances.pred_classes == CocoClass]
 
-    print("classes found: {}".format(outputs["instances"].pred_classes))
+    print("[INFO] Classes found: {}".format(outputs["instances"].pred_classes))
+    print(f"[INFO] Number of objects found: {len(instances)}")
+    print(f"[INFO] Number of objects of selected class found: {len(instancesOfClass)}")
 
-    if len(outputs["instances"].pred_masks) > 0:
-        mask = outputs["instances"].pred_masks[0]
+    if len(instancesOfClass.pred_masks) > 0:
+        mask = instancesOfClass.pred_masks[0]
         mask = np.array(mask.cpu(), dtype=np.uint8)
 
         mask = Image.fromarray(mask * 255)
@@ -53,6 +57,7 @@ def computeSegmentationMask(image, predictor, refine=False):
 
         return mask
     else:
+        print("[WARNING] No objects of given class found")
         return False
 
 
