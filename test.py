@@ -15,29 +15,30 @@ import glob
 FULL PIPELINE TEST
 '''
 
-# ridersId, idBs, idMasks = videoParsing.bboxBackgroundSub('./files/videos/id1.mp4', 200, 200000, 100, show=False, verbose=True, save=True)
+out = videoParsing.bboxBackgroundSub('./files/rawVideos/id_front.mp4', 200, 200000, 100, show=False, verbose=True, saveMod=2)
+# out = videoParsing.bboxBackgroundSub('./files/videos/id1.mp4', 200, 200000, 100, show=False, verbose=True, saveMod=2)
 # riders, bs, masks = videoParsing.bboxBackgroundSub('./files/videos/multi1.mp4', 200, 200000, 100, show=False, verbose=True, save=True)
 
-path = os.path.join(os.getcwd(), "files\\temp\\BS_2021-09-05-17-45-54")
+# path = os.path.join(os.getcwd(), "files\\temp\\BS_2021-09-05-17-45-54")
 
-ridersId = []
-for file in os.listdir(path):
-    rider = cv2.imread(os.path.join(path, file))
-    ridersId.append(rider)
+# ridersId = []
+# for file in os.listdir(path):
+#     rider = cv2.imread(os.path.join(path, file))
+#     ridersId.append(rider)
 
-predictor = segmentation.instantiatePredictor()
-refRider = cv2.imread(".\\files\\temp\\BS_2021-09-05-17-46-52\\rider_2.jpg")
-maskCoco = segmentation.computeSegmentationMask(refRider, predictor, refine=False, CocoClass=0)
+# predictor = segmentation.instantiatePredictor()
+# refRider = cv2.imread(".\\files\\temp\\BS_2021-09-05-17-46-52\\rider_2.jpg")
+# maskCoco = segmentation.computeSegmentationMask(refRider, predictor, refine=False, CocoClass=0)
 
-cv2.imshow("MA", maskCoco)
-cv2.waitKey(0)
+# cv2.imshow("MA", maskCoco)
+# cv2.waitKey(0)
 
-histRef = hist.computeHist(refRider, mask=maskCoco, normalize=True)
-cutRef = cv2.bitwise_and(refRider, refRider, mask=maskCoco)
+# histRef = hist.computeHist(refRider, mask=maskCoco, normalize=True)
+# cutRef = cv2.bitwise_and(refRider, refRider, mask=maskCoco)
 
 # utils.showImgs(riders, 1)
 
-print(histRef.shape)
+# print(histRef.shape)
 
 # for x in range(len(ridersId)):
 #     # mask = idMasks[x]
