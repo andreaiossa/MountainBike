@@ -1,8 +1,12 @@
 from cv2 import cv2, norm
 import numpy as np
+import matplotlib
 from matplotlib import pyplot as plt
 import segmentation
 import yolo
+import tkinter
+
+matplotlib.use('TkAgg')
 
 
 def compareHist(hist1, hist2, metric):
@@ -38,3 +42,8 @@ def computeHist(img, mask=None, normalize=False):
         cv2.normalize(hist, hist, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
 
     return hist
+
+
+def displayHist(hist):
+    plt.plot(hist)
+    plt.show()

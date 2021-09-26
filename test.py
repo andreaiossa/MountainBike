@@ -27,7 +27,7 @@ for file in os.listdir(path):
 
 predictor = segmentation.instantiatePredictor()
 refRider = cv2.imread(".\\files\\temp\\BS_2021-09-05-17-46-52\\rider_2.jpg")
-maskCoco = segmentation.computeSegmentationMask(refRider, predictor, refine=False, CocoClass=1)
+maskCoco = segmentation.computeSegmentationMask(refRider, predictor, refine=False, CocoClass=0)
 
 cv2.imshow("MA", maskCoco)
 cv2.waitKey(0)
@@ -37,25 +37,25 @@ cutRef = cv2.bitwise_and(refRider, refRider, mask=maskCoco)
 
 # utils.showImgs(riders, 1)
 
-print(len(ridersId))
+print(histRef.shape)
 
-for x in range(len(ridersId)):
-    # mask = idMasks[x]
-    mask = segmentation.computeSegmentationMask(ridersId[x], predictor, refine=False, CocoClass=1)
-    if not isinstance(mask, bool):
-        cv2.imshow("full", ridersId[x])
-        hist1 = hist.computeHist(ridersId[x], mask=mask, normalize=True)
+# for x in range(len(ridersId)):
+#     # mask = idMasks[x]
+#     mask = segmentation.computeSegmentationMask(ridersId[x], predictor, refine=False, CocoClass=0)
+#     if not isinstance(mask, bool):
+#         cv2.imshow("full", ridersId[x])
+#         hist1 = hist.computeHist(ridersId[x], mask=mask, normalize=True)
 
-        compare = hist.compareHist(histRef, hist1, cv2.HISTCMP_CHISQR)
-        # segm = cv2.bitwise_and(ridersId[x], idBs[x], mask=mask)
-        cutRider = cv2.bitwise_and(ridersId[x], ridersId[x], mask=mask)
+#         compare = hist.compareHist(histRef, hist1, cv2.HISTCMP_CHISQR)
+#         # segm = cv2.bitwise_and(ridersId[x], idBs[x], mask=mask)
+#         cutRider = cv2.bitwise_and(ridersId[x], ridersId[x], mask=mask)
 
-        cv2.imshow("full", ridersId[x])
-        cv2.imshow('cutRef', cutRef)
-        cv2.imshow('ref', refRider)
-        cv2.imshow(f'{compare}', cutRider)
+#         cv2.imshow("full", ridersId[x])
+#         cv2.imshow('cutRef', cutRef)
+#         cv2.imshow('ref', refRider)
+#         cv2.imshow(f'{compare}', cutRider)
 
-        cv2.waitKey(0)
+#         cv2.waitKey(0)
 '''
 FEATURE MATCHING TEST
 '''
