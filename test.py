@@ -15,7 +15,17 @@ import glob
 FULL PIPELINE TEST
 '''
 
-out = videoParsing.bboxBackgroundSub('./files/rawVideos/id_front.mp4', 200, 200000, 100, show=False, verbose=True, saveMod=2)
+im = './files/rider_mask_1.jpg'
+
+histo = hist.computeHist(im, normalize=True)
+print(histo.shape)
+
+# out = videoParsing.bboxBackgroundSub('./files/rawVideos/jump11.mp4', 200, 200000, 100, show=False, verbose=True, saveMod=2)
+# predictor = segmentation.instantiatePredictor()
+# masks = videoParsing.detectronOnVideo('./files/temp/BS_2021-09-30-23-14-52/rider_vide_2.avi', predictor, verbose=True)
+# out = videoParsing.bboxBackgroundSub('./files/rawVideos/jump3.mp4', 200, 200000, 100, show=False, verbose=True, saveMod=2)
+# out = videoParsing.bboxBackgroundSub('./files/rawVideos/jump4.mp4', 200, 200000, 100, show=False, verbose=True, saveMod=2)
+# out = videoParsing.bboxBackgroundSub('./files/rawVideos/jump5.mp4', 200, 200000, 100, show=False, verbose=True, saveMod=2)
 # out = videoParsing.bboxBackgroundSub('./files/videos/id1.mp4', 200, 200000, 100, show=False, verbose=True, saveMod=2)
 # riders, bs, masks = videoParsing.bboxBackgroundSub('./files/videos/multi1.mp4', 200, 200000, 100, show=False, verbose=True, save=True)
 
@@ -93,3 +103,10 @@ FEATURE MATCHING TEST
 # # features.showMatching(img1, img2, kp1, kp2, matches)
 
 # # features.flann(img1, img2, des1, des2, kp1, kp2)
+''' TEST '''
+
+# im = ""
+
+# img = cv2.imread(im)
+# cv2.imshow(img)
+# cv2.waitKey(0)

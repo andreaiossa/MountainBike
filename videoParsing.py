@@ -5,20 +5,23 @@ import os
 from datetime import datetime as dt
 import time
 import datetime
+import segmentation
+import utils
 
 SAVE_FOLDER = "./files/temp"
 
 
-def removeMaskNoise(mask, radius, iteration1, iteration2):
+def videoInfo(video):
     '''
-    apply a kernel of given radius to mask. iteration1 is number of iteration of opening kernel, iteration2 is number of iterations of dilation
+    Given a video returns encoded vidoe and its basic infos such as: total number of frames, frame rate
     '''
+    cap = cv2.VideoCapture(video)
+    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
+    duration = length / fps
+    duration = f"{int(duration/60)}:{duration%60}"
 
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (radius, radius))
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=iteration1)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, kernel, iterations=iteration2)
-
-    return mask
+    return cap, length, fps, duration
 
 
 def backgroundSub(video, start, end, tresh, show=False):
@@ -72,14 +75,12 @@ def bboxBackgroundSub(video, start, end, tresh, show=False, verbose=False, saveM
         newPath = SAVE_FOLDER + f"/BS_{now}"
         os.makedirs(newPath)
 
-    cap = cv2.VideoCapture(video)
-    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    fps = int(cap.get(cv2.CAP_PROP_FPS))
-    duration = length / fps
+    cap, length, fps, duration = videoInfo(video)
     end = length if end > length else end
-    if verbose:
-        print(f"[INFO] number of frames: {length}")
-        print(f"[INFO] video duration is {int(duration/60)}:{duration%60} minutes")
+
+    print(f"[INFO] number of frames: {length}")
+    print(f"[INFO] video duration is {duration} minutes")
+
     cap.set(1, start)
     fgbg = cv2.createBackgroundSubtractorMOG2(varThreshold=tresh, detectShadows=False)
     counter = 0
@@ -200,3 +201,34 @@ def cutVideo(video, frame, fps, box, path):
         subframe = frame[int(box[1]):int(box[1] + box[3]), int(box[0]):int(box[0] + box[2])]
         out.write(subframe)
     cap.release()
+
+
+def detectronOnVideo(video, predictor, refine=False, verbose=False, show=False):
+    '''
+    Given a video and a detectron predictor it computes a mask for each frame of the video. Returns the masks in a list
+    '''
+
+    cap, length, fps, duration = videoInfo(video)
+    print(f"{utils.bcolors.presetINFO} number of frames: {length}")
+    print(f"{utils.bcolors.presetINFO} video duration is {duration} minutes")
+    masks = []
+    counter = 0
+    totTime = 0
+    while True:
+        start = time.time()
+        counter += 1
+        ret, frame = cap.read()
+        if not ret:
+            break
+        mask = segmentation.computeSegmentationMask(frame, predictor, refine, verbose=False)
+        masks.append(mask)
+        end = time.time()
+        if verbose:
+            currentTime = end - start
+            totTime += currentTime
+            avgTime = totTime / counter
+            expTime = avgTime * (length - counter)
+            expTime = str(datetime.timedelta(seconds=expTime)).split('.')[0]
+            print(f"{utils.bcolors.presetINFO} Current frame: {counter} over {length}, Avg Exp Time for frame: {round(avgTime,2)} sec, Exp time left {expTime}")
+
+    return masks
