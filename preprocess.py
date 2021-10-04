@@ -4,6 +4,7 @@ import segmentation
 import videoParsing
 import hist
 import utils
+import pickle
 
 
 class rider():
@@ -61,6 +62,7 @@ class rider():
 
 
 folder = "./files/RIDERS"
+saveFolder = "./pickles/"
 
 
 def collectRiders():
@@ -79,12 +81,10 @@ def processRider(RIDERS):
     tot = len(RIDERS)
     for rider in RIDERS:
         counter += 1
-        if counter > 1:
-            break
         print(f"{utils.bcolors.presetINFO} Processing {counter}/{tot}...")
         rider.processFiles()
         rider.collectMasks()
         rider.collectHists()
         rider.squashHist()
 
-        print(rider.backHist2D)
+        pickle.dump(rider, open(saveFolder + f"{rider.name}.p", "wb"))

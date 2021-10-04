@@ -12,9 +12,14 @@ import features
 import os
 import glob
 import preprocess
+import pickle
 '''
 FULL PIPELINE TEST
 '''
+# rider = pickle.load(open("./test.p", "rb"))
+# print(rider.backImg)
+# cv2.imshow("ciao", rider.backImg)
+# cv2.waitKey(0)
 
 riders = preprocess.collectRiders()
 preprocess.processRider(riders)
