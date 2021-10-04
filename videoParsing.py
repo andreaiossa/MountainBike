@@ -18,7 +18,7 @@ def videoInfo(video):
     cap = cv2.VideoCapture(video)
     length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
-    duration = length / fps
+    duration = length / fps if fps > 0 else 0
     duration = f"{int(duration/60)}:{duration%60}"
 
     return cap, length, fps, duration
@@ -205,13 +205,13 @@ def cutVideo(video, frame, fps, box, path):
 
 def detectronOnVideo(video, predictor, refine=False, verbose=False, show=False):
     '''
-    Given a video and a detectron predictor it computes a mask for each frame of the video. Returns the masks in a list
+    Given a video and a detectron predictor it computes a mask for each frame of the video. Returns frame and relative mask in a list
     '''
 
     cap, length, fps, duration = videoInfo(video)
     print(f"{utils.bcolors.presetINFO} number of frames: {length}")
     print(f"{utils.bcolors.presetINFO} video duration is {duration} minutes")
-    masks = []
+    frameAndMasks = []
     counter = 0
     totTime = 0
     while True:
@@ -221,7 +221,8 @@ def detectronOnVideo(video, predictor, refine=False, verbose=False, show=False):
         if not ret:
             break
         mask = segmentation.computeSegmentationMask(frame, predictor, refine, verbose=False)
-        masks.append(mask)
+        if not isinstance(mask, bool):
+            frameAndMasks.append((frame, mask))
         end = time.time()
         if verbose:
             currentTime = end - start
@@ -231,4 +232,4 @@ def detectronOnVideo(video, predictor, refine=False, verbose=False, show=False):
             expTime = str(datetime.timedelta(seconds=expTime)).split('.')[0]
             print(f"{utils.bcolors.presetINFO} Current frame: {counter} over {length}, Avg Exp Time for frame: {round(avgTime,2)} sec, Exp time left {expTime}")
 
-    return masks
+    return frameAndMasks

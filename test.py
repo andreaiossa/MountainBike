@@ -11,16 +11,51 @@ import utils
 import features
 import os
 import glob
+import preprocess
 '''
 FULL PIPELINE TEST
 '''
 
-im = './files/rider_mask_1.jpg'
+riders = preprocess.collectRiders()
+preprocess.processRider(riders)
+''' HISTOGRMAS '''
+# koala = './files/imgs/koala1.jpg'
+# gira = './files/imgs/giraffa2.jpg'
+# koala = cv2.imread(koala)
+# gira = cv2.imread(gira)
+# gira = cv2.cvtColor(gira, cv2.COLOR_BGR2HSV)
+# koala = cv2.cvtColor(koala, cv2.COLOR_BGR2HSV)
 
-histo = hist.computeHist(im, normalize=True)
-print(histo.shape)
+# kHS = cv2.calcHist([koala], [0, 1], None, [8, 8], [0, 180, 0, 256])
+# kH = cv2.calcHist([koala], [0], None, [179], [0, 180])
+# kS = cv2.calcHist([koala], [1], None, [255], [0, 256])
 
-# out = videoParsing.bboxBackgroundSub('./files/rawVideos/jump11.mp4', 200, 200000, 100, show=False, verbose=True, saveMod=2)
+# kB = cv2.calcHist([koala], [0], None, [255], [0, 256])
+# kG = cv2.calcHist([koala], [1], None, [255], [0, 256])
+# kR = cv2.calcHist([koala], [2], None, [255], [0, 256])
+
+# gHS = cv2.calcHist([gira], [0, 1], None, [8, 8], [0, 180, 0, 256])
+# gH = cv2.calcHist([gira], [0], None, [179], [0, 180])
+# gS = cv2.calcHist([gira], [1], None, [255], [0, 256])
+
+# gB = cv2.calcHist([gira], [0], None, [255], [0, 256])
+# gG = cv2.calcHist([gira], [1], None, [255], [0, 256])
+# gR = cv2.calcHist([gira], [2], None, [255], [0, 256])
+
+# cv2.imshow("g", gira)
+# cv2.imshow("k", koala)
+# cv2.waitKey(0)
+# hist.displayHist(kHS, mod=2)
+# hist.displayHist(gHS, mod=2)
+''' VIDEOS'''
+# out = videoParsing.bboxBackgroundSub('./files/rawVideos/cancelletto_front_3.mp4', 200, 200000, 100, show=False, verbose=True, saveMod=2)
+
+# matrix1 = np.array([[1, 2]])
+# matrix2 = np.array([[10, 20], [30, 40]])
+
+# out = hist.squashHists([matrix1, matrix2])
+# print("ciao")
+
 # predictor = segmentation.instantiatePredictor()
 # masks = videoParsing.detectronOnVideo('./files/temp/BS_2021-09-30-23-14-52/rider_vide_2.avi', predictor, verbose=True)
 # out = videoParsing.bboxBackgroundSub('./files/rawVideos/jump3.mp4', 200, 200000, 100, show=False, verbose=True, saveMod=2)

@@ -16,6 +16,7 @@ class bcolors:
 
     presetWARNING = '\033[93m[WARNING]\033[0m'
     presetINFO = '\033[92m[INFO]\033[0m'
+    presetERROR = '\033[91m[ERROR]\033[0m'
 
 
 def showImgs(images, scale=1):
