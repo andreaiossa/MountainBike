@@ -21,8 +21,66 @@ FULL PIPELINE TEST
 # cv2.imshow("ciao", rider.backImg)
 # cv2.waitKey(0)
 
-riders = preprocess.collectRiders()
-preprocess.processRider(riders)
+riders = []
+
+# riders = preprocess.collectRiders()
+# preprocess.processRider(riders)
+folder = "./files/pickles/"
+for file in os.listdir(folder):
+    rider = pickle.load(open(folder + file, "rb"))
+    riders.append(rider)
+
+# r = riders[0]
+score = 0
+for r in riders:
+    minimum = 10000
+    maximum = -1000
+    match = None
+    shouldMatch = None
+    for rider in riders:
+        refHist = np.float32(r.backHist2D)
+        riderHist = np.float32(rider.customHist2D)
+
+        # hist.displayHist(refHist, mod=1)
+        # hist.displayHist(riderHist, mod=1)
+
+        result = hist.compareHist(riderHist, refHist, cv2.HISTCMP_CHISQR)
+        if result < minimum:
+            minimum = result
+            match = rider
+        if rider.name == r.name:
+            shouldMatch = result
+        # cv2.imshow(f"{rider.name}: {round(result, 3)}", rider.customImg)
+        # cv2.imshow(f"{r.name}", r.backImg)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+
+    print(f"{r.name}: Best match was {match.name} with {minimum}")
+    print(f"comparison with self was {shouldMatch }")
+    score = score + 1 if r.name == match.name else score
+
+print(f"total score is {score}/10")
+
+# preprocess.checkDetectron(r.frameAndMasksBack)
+# preprocess.checkDetectron(riders[9].frameAndMasksCustom)
+
+# for rider in riders:
+#     if rider.name == "RIDER1":
+#         for frame, mask in rider.frameAndMasksCustom:
+
+#             cut = cv2.bitwise_and(frame, frame, mask=mask)
+#             utils.showImgs([frame, mask, cut])
+#             cv2.destroyAllWindows()
+
+# f = "files/RIDERS/RIDER2/2_jump.avi"
+# predictor = segmentation.instantiatePredictor()
+# bo = videoParsing.detectronOnVideo(f, predictor, verbose=True)
+
+# for frame, mask in bo:
+
+#     cut = cv2.bitwise_and(frame, frame, mask=mask)
+#     utils.showImgs([frame, mask, cut])
+#     cv2.destroyAllWindows()
 ''' HISTOGRMAS '''
 # koala = './files/imgs/koala1.jpg'
 # gira = './files/imgs/giraffa2.jpg'

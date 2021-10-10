@@ -32,3 +32,8 @@ def showImgs(images, scale=1):
         resized = cv2.resize(image, (w, h))
         cv2.imshow('image {}'.format(counter), resized)
     cv2.waitKey(0)
+
+
+def arrayNP2CV(array):
+    h, w = array.shape
+    array2 = cv2.CreateMat(h, w, cv2.CV_32F)
