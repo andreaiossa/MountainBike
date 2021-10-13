@@ -54,10 +54,10 @@ def compute2DHist(img, mask=None, normalize=False, difference=False, pixels=None
         # print("\nHIST after \n", hist)
 
     if normalize:
-        # cv2.normalize(hist, hist, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
-        cv2.normalize(hist, hist, norm_type=cv2.NORM_L1)
+        cv2.normalize(hist, hist, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+        # cv2.normalize(hist, hist, norm_type=cv2.NORM_L2)
         # denominator = pixels if pixels else hist.sum()
-        # hist = hist / hist.sum()
+        #hist = hist / hist.sum()
 
     return hist
 

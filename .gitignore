@@ -2,6 +2,8 @@
 
 files/
 */yolov3.weights
+.DS_Store
+.Rhistory
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
