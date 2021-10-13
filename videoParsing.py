@@ -212,6 +212,7 @@ def detectronOnVideo(video, predictor, refine=False, verbose=False, show=False):
     print(f"{utils.bcolors.presetINFO} number of frames: {length}")
     print(f"{utils.bcolors.presetINFO} video duration is {duration} minutes")
     frameAndMasks = []
+    frameAndMasksFull = []
     counter = 0
     totTime = 0
     while True:
@@ -223,6 +224,7 @@ def detectronOnVideo(video, predictor, refine=False, verbose=False, show=False):
         mask = segmentation.computeSegmentationMask(frame, predictor, refine, verbose=False)
         if not isinstance(mask, bool):
             frameAndMasks.append((frame, mask))
+        frameAndMasksFull.append((frame, mask))
         end = time.time()
         if verbose:
             currentTime = end - start
@@ -232,4 +234,4 @@ def detectronOnVideo(video, predictor, refine=False, verbose=False, show=False):
             expTime = str(datetime.timedelta(seconds=expTime)).split('.')[0]
             print(f"{utils.bcolors.presetINFO} Current frame: {counter} over {length}, Avg Exp Time for frame: {round(avgTime,2)} sec, Exp time left {expTime}")
 
-    return frameAndMasks
+    return frameAndMasks, frameAndMasksFull

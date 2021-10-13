@@ -2,24 +2,35 @@ from cv2 import cv2, norm
 import numpy as np
 import matplotlib
 from matplotlib import pyplot as plt
+from scipy.spatial import distance
 import segmentation
 import yolo
 import tkinter
 import utils
+import seaborn as sns
 
 matplotlib.use('TkAgg')
 
 
-def compareHist(hist1, hist2, metric):
+def compareHistCV(hist1, hist2, metric):
     '''
     Gives the result of the comparison of two histograms with defined metric.
     METRICS: CV_COMP_CORREL (best is higher), CV_COMP_INTERSECT (best is higher), CV_COMP_CHISQR (best is lower), CV_COMP_BHATTACHARYYA (best is lower)
     '''
-    result = cv2.compareHist(hist1, hist2, metric)
+    result = cv2.compareHist(hist1.flatten(), hist2.flatten(), metric)
     return result
 
 
-def compute2DHist(img, mask=None, normalize=False):
+def compareHistPY(hist1, hist2, metric):
+    '''
+    Gives the result of the comparison of two histograms with defined metric.
+    METRICS: CV_COMP_CORREL (best is higher), CV_COMP_INTERSECT (best is higher), CV_COMP_CHISQR (best is lower), CV_COMP_BHATTACHARYYA (best is lower)
+    '''
+    result = metric(hist1.flatten(), hist2.flatten())
+    return result
+
+
+def compute2DHist(img, mask=None, normalize=False, difference=False, pixels=None):
     '''
     Given img (BGR) and mask return the 8 bins histogram in HS color space
     '''
@@ -36,9 +47,17 @@ def compute2DHist(img, mask=None, normalize=False):
     ranges = h_ranges + s_ranges
 
     hist = cv2.calcHist([static_image_HSV], channels, mask, [8, 8], ranges, accumulate=False)
+    if not isinstance(difference, bool):
+        # print("\nHIST BEFORE \n", hist)
+        # print("\n WOODS \n", hist)
+        hist = diffHist(hist, difference)
+        # print("\nHIST after \n", hist)
 
     if normalize:
-        cv2.normalize(hist, hist, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+        # cv2.normalize(hist, hist, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+        cv2.normalize(hist, hist, norm_type=cv2.NORM_L1)
+        # denominator = pixels if pixels else hist.sum()
+        # hist = hist / hist.sum()
 
     return hist
 
@@ -67,8 +86,8 @@ def compute1DHist(img, mask=None, normalize=False):
     return (histH, histS)
 
 
-def displayHist(hist, mod=1):
-    fig = plt.figure()
+def displayHist(hist, fig, mod=1):
+    # fig = plt.figure()
     ax1 = fig.add_subplot()
     if mod == 0:
         colors = ("b", "g", "r")
@@ -76,7 +95,7 @@ def displayHist(hist, mod=1):
             ax1.plot(h, color=c)
 
     if mod == 1:
-        ax1.imshow(hist, interpolation='nearest')
+        ax1 = sns.heatmap(hist, vmin=0, vmax=1)
 
     if mod == 2:
         data_array = np.array(hist)
@@ -87,8 +106,6 @@ def displayHist(hist, mod=1):
 
         ax2 = fig.add_subplot(111, projection='3d')
         ax2.bar3d(x_data, y_data, np.zeros(len(z_data)), 1, 1, z_data)
-
-    plt.show()
 
 
 def squashHists(hists, mod="median"):
@@ -115,5 +132,21 @@ def squashHists(hists, mod="median"):
                     values.append(hist[x][y])
                 finalValue = np.mean(values)
                 outHist[x][y] = finalValue
+
+    return outHist
+
+
+def diffHist(hist1, hist2):
+
+    if hist1.shape != hist2.shape:
+        print(f"{utils.bcolors.presetERROR} Histograms need to be of same shape (bins) to difference them")
+        return
+    shape = hist1.shape
+    outHist = np.zeros(shape)
+    for x in range(shape[0]):
+        for y in range(shape[1]):
+            a = hist1[x][y]
+            b = hist2[x][y]
+            outHist[x][y] = a - b if a - b > 0 else 0
 
     return outHist

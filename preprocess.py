@@ -16,10 +16,6 @@ class rider():
         self.backImg = None
         self.frontVid = None
         self.backVid = None
-        self.frontHists1D = []
-        self.frontHists2D = []
-        self.backHists1D = []
-        self.backHists2D = []
         self.frameAndMasksFront = []
         self.frameAndMasksBack = []
         self.frontHist2D = None
@@ -55,10 +51,14 @@ class rider():
             self.frameAndMasksBack = videoParsing.detectronOnVideo(self.backVid, predictor, refine=True, verbose=True)
             self.frameAndMasksFront = videoParsing.detectronOnVideo(self.frontVid, predictor, refine=True, verbose=True)
         else:
-            self.frameAndMasksCustom = videoParsing.detectronOnVideo(video, predictor, refine=True, verbose=True)
+            self.frameAndMasksCustom, self.frameAndMasksCustomFull = videoParsing.detectronOnVideo(video, predictor, refine=True, verbose=True)
 
     def collectHists(self, mod="identification"):
         if mod == "identification":
+            self.frontHists1D = []
+            self.frontHists2D = []
+            self.backHists1D = []
+            self.backHists2D = []
             for frame, mask in self.frameAndMasksFront:
                 hist1D = hist.compute1DHist(frame, mask=mask, normalize=True)
                 hist2D = hist.compute2DHist(frame, mask=mask, normalize=True)
@@ -74,12 +74,25 @@ class rider():
                 self.backHists2D.append(hist2D)
 
         if mod == "custom":
+            self.customHists1D = []
+            self.customHists2D = []
             for frame, mask in self.frameAndMasksCustom:
                 hist1D = hist.compute1DHist(frame, mask=mask, normalize=True)
                 hist2D = hist.compute2DHist(frame, mask=mask, normalize=True)
 
-                self.customHists1D = []
-                self.customHists2D = []
+                self.customHists1D.append(hist1D)
+                self.customHists2D.append(hist2D)
+
+        if mod == "noMask":
+            woods = self.frameAndMasksCustomFull[0][0]
+            histWoods = hist.compute2DHist(woods)
+            pixels = histWoods.sum()
+            self.customHists1D = []
+            self.customHists2D = []
+            for frame, mask in self.frameAndMasksCustom:
+                hist1D = hist.compute1DHist(frame, mask=None, normalize=True)
+                hist2D = hist.compute2DHist(frame, mask=None, normalize=True, difference=histWoods, pixels=pixels)
+
                 self.customHists1D.append(hist1D)
                 self.customHists2D.append(hist2D)
 
@@ -90,13 +103,23 @@ class rider():
             self.customHist2D = hist.squashHists(self.customHists2D, mod)
 
 
-folder = "./files/RIDERS"
-saveFolder = "./files/pickles/"
+RIDERfolder = "./files/RIDERS/"
+picklesFolder = "./files/pickles/"
 
 
 def collectRiders():
+    print(f"{utils.bcolors.presetINFO} extracting pickles...")
+    riders = []
+    for file in os.listdir(picklesFolder):
+        rider = pickle.load(open(picklesFolder + file, "rb"))
+        riders.append(rider)
+    print(f"{utils.bcolors.presetINFO} Done")
+    return riders
+
+
+def collectRidersFolders():
     RIDERS = []
-    for root, dirs, files in os.walk(folder):
+    for root, dirs, files in os.walk(RIDERfolder):
         for dirName in dirs:
             dirPath = os.path.join(root, dirName)
             r = rider(dirName, dirPath)
@@ -116,7 +139,7 @@ def processRider(RIDERS):
         rider.collectHists()
         rider.squashHist()
 
-        pickle.dump(rider, open(saveFolder + f"{rider.name}.p", "wb"))
+        pickle.dump(rider, open(picklesFolder + f"{rider.name}.p", "wb"))
 
 
 def updateRider(RIDER):
@@ -125,11 +148,14 @@ def updateRider(RIDER):
     RIDER.collectHists(mod="custom")
     RIDER.squashHist(update=True)
 
-    pickle.dump(RIDER, open(saveFolder + f"{RIDER.name}.p", "wb"))
+    pickle.dump(RIDER, open(picklesFolder + f"{RIDER.name}.p", "wb"))
 
 
 def checkDetectron(frameAndMask):
     for frame, mask in frameAndMask:
-        cut = cv2.bitwise_and(frame, frame, mask=mask)
-        utils.showImgs([frame, mask, cut])
+        if not isinstance(mask, bool):
+            cut = cv2.bitwise_and(frame, frame, mask=mask)
+            utils.showImgs([frame, mask, cut])
+        else:
+            utils.showImgs([frame])
         cv2.destroyAllWindows()
