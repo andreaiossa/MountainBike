@@ -1,13 +1,12 @@
-from cv2 import cv2, norm
+import cv2
 import numpy as np
 import matplotlib
 from matplotlib import pyplot as plt
 from scipy.spatial import distance
-import segmentation
-import yolo
-import tkinter
+import sys
 import utils
 import seaborn as sns
+from tabulate import tabulate
 
 matplotlib.use('TkAgg')
 
@@ -80,7 +79,7 @@ def compute1DHist(img, mask=None, normalize=False):
     histS = cv2.calcHist([static_image_HSV], [1], mask, [8], s_ranges, accumulate=False)
 
     if normalize:
-        cv2.normalize(histH, histH, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+        cv2.normalize(histH, histH, alpha=0, beta=1, norm_type=cv2.NORM_L2)
         cv2.normalize(histS, histS, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
 
     return (histH, histS)
@@ -150,3 +149,82 @@ def diffHist(hist1, hist2):
             outHist[x][y] = a - b if a - b > 0 else 0
 
     return outHist
+
+
+def fullHistComp(riders, fileName, show=False):
+    tables = []
+    headers = []
+    for rider in riders:
+        headers.append(rider.name)
+
+    for metricTuple in utils.metrics:
+        metric = metricTuple[0]
+        mod = metricTuple[1]
+        metricName = metricTuple[2]
+        fun = metricTuple[3]
+        score = 0
+        table = []
+        for ref in riders:
+            tmpRow = []
+            row = [ref.name]
+            minimum = None
+            maximum = None
+            match = False
+            shouldMatch = None
+            for rider in riders:
+                refHist = np.float32(ref.backHist1D)
+                riderHist = np.float32(rider.customHist1D)
+
+                if show:
+                    fig1 = plt.figure(f"REF: {ref.name}")
+                    displayHist(refHist, fig1, mod=1)
+                    plt.show()
+                    fig1 = plt.figure(rider.name)
+                    displayHist(riderHist, fig1, mod=1)
+                    plt.show()
+                if fun == "CV":
+                    result = compareHistCV(riderHist, refHist, metric)
+                elif fun == "PY":
+                    result = compareHistPY(riderHist, refHist, metric)
+                if mod == "min":
+                    if not minimum:
+                        minimum = result
+                        match = rider
+                    elif result < minimum:
+                        minimum = result
+                        match = rider
+                if mod == "max":
+                    if not maximum:
+                        maximum = result
+                        match = rider
+                    elif result > maximum:
+                        maximum = result
+                        match = rider
+                if rider.name == ref.name:
+                    shouldMatch = result
+
+                tmpRow.append(result)
+
+            best = minimum if mod == "min" else maximum
+            score = score + 1 if ref.name == match.name else score
+            for r in tmpRow:
+                if r == shouldMatch and r == best:
+                    row.append(f"{utils.bcolors.OKBLUE}{r}{utils.bcolors.ENDC}")
+                elif r == best:
+                    row.append(f"{utils.bcolors.OKCYAN}{r}{utils.bcolors.ENDC}")
+                else:
+                    row.append(r)
+            table.append(row)
+            
+
+        table.append([f"{utils.bcolors.OKGREEN}{metricName}", f"Score: {score}/10", f"better is {mod}{utils.bcolors.ENDC}"])
+        tables.append(table)
+
+
+    original_stdout = sys.stdout
+    with open(fileName, 'w') as f:
+        sys.stdout = f
+        for tab in tables:
+            print(tabulate(tab, headers=headers))
+            print("\n")
+        sys.stdout = original_stdout

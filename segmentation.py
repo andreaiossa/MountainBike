@@ -1,8 +1,8 @@
 from cv2 import cv2
 import numpy as np
-from detectron2 import model_zoo
-from detectron2.config import get_cfg
-from detectron2.engine import DefaultPredictor
+# from detectron2 import model_zoo
+# from detectron2.config import get_cfg
+# from detectron2.engine import DefaultPredictor
 from os.path import isfile
 from PIL import Image
 

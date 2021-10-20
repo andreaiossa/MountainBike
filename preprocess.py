@@ -45,14 +45,21 @@ class rider():
                 if file.find(customFile + ".avi") != -1:
                     self.customVid = os.path.join(self.folder, file)
 
-    def collectMasks(self, video=None):
-        predictor = segmentation.instantiatePredictor()
-        if not video:
-            self.frameAndMasksBack = videoParsing.detectronOnVideo(self.backVid, predictor, refine=True, verbose=True)
-            self.frameAndMasksFront = videoParsing.detectronOnVideo(self.frontVid, predictor, refine=True, verbose=True)
-        else:
-            self.frameAndMasksCustom, self.frameAndMasksCustomFull = videoParsing.detectronOnVideo(video, predictor, refine=True, verbose=True)
-
+    def collectMasks(self, video=None, mod="detectron"):
+        if mod == "detectron":
+            predictor = segmentation.instantiatePredictor()
+            if not video:
+                self.frameAndMasksBack = videoParsing.detectronOnVideo(self.backVid, predictor, refine=True, verbose=True)
+                self.frameAndMasksFront = videoParsing.detectronOnVideo(self.frontVid, predictor, refine=True, verbose=True)
+            else:
+                self.frameAndMasksCustom, self.frameAndMasksCustomFull = videoParsing.detectronOnVideo(video, predictor, refine=True, verbose=True)
+        if mod == "bSub":
+            if not video:
+                self.frameAndMasksBack = videoParsing.backgroundSub(self.backVid,0,100000, 80)
+                self.frameAndMasksFront = videoParsing.backgroundSub(self.frontVid,0,100000, 80)
+            else:
+                self.frameAndMasksCustom = videoParsing.backgroundSub(video,0,100000, 80)
+                
     def collectHists(self, mod="identification"):
         if mod == "identification":
             self.frontHists1D = []
@@ -63,14 +70,14 @@ class rider():
                 hist1D = hist.compute1DHist(frame, mask=mask, normalize=True)
                 hist2D = hist.compute2DHist(frame, mask=mask, normalize=True)
 
-                self.frontHists1D.append(hist1D)
+                self.frontHists1D.append(hist1D[0])
                 self.frontHists2D.append(hist2D)
 
             for frame, mask in self.frameAndMasksBack:
                 hist1D = hist.compute1DHist(frame, mask=mask, normalize=True)
                 hist2D = hist.compute2DHist(frame, mask=mask, normalize=True)
 
-                self.backHists1D.append(hist1D)
+                self.backHists1D.append(hist1D[0])
                 self.backHists2D.append(hist2D)
 
         if mod == "custom":
@@ -80,7 +87,7 @@ class rider():
                 hist1D = hist.compute1DHist(frame, mask=mask, normalize=True)
                 hist2D = hist.compute2DHist(frame, mask=mask, normalize=True)
 
-                self.customHists1D.append(hist1D)
+                self.customHists1D.append(hist1D[0])
                 self.customHists2D.append(hist2D)
 
         if mod == "noMask":
@@ -96,10 +103,14 @@ class rider():
                 self.customHists1D.append(hist1D)
                 self.customHists2D.append(hist2D)
 
-    def squashHist(self, mod="median", update=False):
-        self.frontHist2D = hist.squashHists(self.frontHists2D, mod)
-        self.backHist2D = hist.squashHists(self.backHists2D, mod)
-        if update:
+    def squashHist(self, mod="median",channels=1):
+        if channels == 1:
+            self.frontHist1D = hist.squashHists(self.frontHists1D, mod)
+            self.backHist1D = hist.squashHists(self.backHists1D, mod)
+            self.customHist1D = hist.squashHists(self.customHists1D, mod)
+        if channels == 2:
+            self.frontHist2D = hist.squashHists(self.frontHists2D, mod)
+            self.backHist2D = hist.squashHists(self.backHists2D, mod)
             self.customHist2D = hist.squashHists(self.customHists2D, mod)
 
 
@@ -143,11 +154,6 @@ def processRider(RIDERS):
 
 
 def updateRider(RIDER):
-    RIDER.processFiles(customFile="jump")
-    RIDER.collectMasks(video=RIDER.customVid)
-    RIDER.collectHists(mod="custom")
-    RIDER.squashHist(update=True)
-
     pickle.dump(RIDER, open(picklesFolder + f"{RIDER.name}.p", "wb"))
 
 

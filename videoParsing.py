@@ -28,30 +28,31 @@ def backgroundSub(video, start, end, tresh, show=False):
     '''
     Given a video, the starting frame, the number of frames to parse and the treshold of the BS, it gives the last image and mask for future use.
     '''
-    cap = cv2.VideoCapture(video)
-    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    duration = length / fps
+    cap, length, fps, duration = videoInfo(video)
     end = length if end > length else end
+
     print(f"[INFO] number of frames: {length}")
-    print(f"[INFO] video duration is {int(duration/60)}:{duration%60} minutes")
+    print(f"[INFO] video duration is {duration} minutes")
+
     cap.set(1, start)
     fgbg = cv2.createBackgroundSubtractorMOG2(varThreshold=tresh)
     counter = 0
 
     frame = None
     fgmask = None
+    framesAndMasks = []
 
     while (counter < end):
         counter += 1
         ret, frame = cap.read()
         fgmask = fgbg.apply(frame)
-
+        framesAndMasks.append((frame, fgmask))
+        
         if show:
             frameR = cv2.resize(frame, (960, 540))
             fgmaskR = cv2.resize(fgmask, (960, 540))
-            cv2.imshow(f'fgmask: {counter}', fgmaskR)
-            cv2.imshow(f'frame: {counter}', frameR)
+            cv2.imshow(f'fgmask', fgmaskR)
+            cv2.imshow(f'frame', frameR)
 
             k = cv2.waitKey(30) & 0xff
             if k == 16:
@@ -61,7 +62,7 @@ def backgroundSub(video, start, end, tresh, show=False):
         cap.release()
         cv2.destroyAllWindows()
 
-    return frame, fgmask
+    return framesAndMasks
 
 
 def bboxBackgroundSub(video, start, end, tresh, show=False, verbose=False, saveMod=False):
