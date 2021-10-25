@@ -24,7 +24,7 @@ def videoInfo(video):
     return cap, length, fps, duration
 
 
-def backgroundSub(video, start, end, tresh, show=False):
+def backgroundSub(video, start, end, tresh, filterPerc=False, show=False):
     '''
     Given a video, the starting frame, the number of frames to parse and the treshold of the BS, it gives the last image and mask for future use.
     '''
@@ -46,17 +46,25 @@ def backgroundSub(video, start, end, tresh, show=False):
         counter += 1
         ret, frame = cap.read()
         fgmask = fgbg.apply(frame)
-        framesAndMasks.append((frame, fgmask))
-        
-        if show:
-            frameR = cv2.resize(frame, (960, 540))
-            fgmaskR = cv2.resize(fgmask, (960, 540))
-            cv2.imshow(f'fgmask', fgmaskR)
-            cv2.imshow(f'frame', frameR)
+        kernel = np.ones((5, 5), np.uint8)
+        fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_CLOSE, kernel)
+        if counter > 1:
+            if filterPerc:
+                cut = cv2.bitwise_and(frame, frame, mask=fgmask)
+                percentageDiff = (np.count_nonzero(cut) * 100) / cut.size
+                if percentageDiff > 3:
+                    framesAndMasks.append((frame, fgmask))
+            else:
+                framesAndMasks.append((frame, fgmask))
+            if show:
+                frameR = cv2.resize(frame, (960, 540))
+                fgmaskR = cv2.resize(fgmask, (960, 540))
+                cv2.imshow(f'fgmask', fgmaskR)
+                cv2.imshow(f'frame', frameR)
 
-            k = cv2.waitKey(30) & 0xff
-            if k == 16:
-                break
+                k = cv2.waitKey(30) & 0xff
+                if k == 16:
+                    break
 
     if show:
         cap.release()

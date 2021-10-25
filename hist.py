@@ -53,8 +53,8 @@ def compute2DHist(img, mask=None, normalize=False, difference=False, pixels=None
         # print("\nHIST after \n", hist)
 
     if normalize:
-        cv2.normalize(hist, hist, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
-        # cv2.normalize(hist, hist, norm_type=cv2.NORM_L2)
+        # cv2.normalize(hist, hist, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+        cv2.normalize(hist, hist, norm_type=cv2.NORM_L2)
         # denominator = pixels if pixels else hist.sum()
         #hist = hist / hist.sum()
 
@@ -79,7 +79,7 @@ def compute1DHist(img, mask=None, normalize=False):
     histS = cv2.calcHist([static_image_HSV], [1], mask, [8], s_ranges, accumulate=False)
 
     if normalize:
-        cv2.normalize(histH, histH, alpha=0, beta=1, norm_type=cv2.NORM_L2)
+        cv2.normalize(histH, histH, norm_type=cv2.NORM_L2)
         cv2.normalize(histS, histS, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
 
     return (histH, histS)
@@ -151,7 +151,7 @@ def diffHist(hist1, hist2):
     return outHist
 
 
-def fullHistComp(riders, fileName, show=False):
+def fullHistComp(riders, fileName, channels=1, show=False):
     tables = []
     headers = []
     for rider in riders:
@@ -172,9 +172,12 @@ def fullHistComp(riders, fileName, show=False):
             match = False
             shouldMatch = None
             for rider in riders:
-                refHist = np.float32(ref.backHist1D)
-                riderHist = np.float32(rider.customHist1D)
-
+                if channels == 1:
+                    refHist = np.float32(ref.backHist1D)
+                    riderHist = np.float32(rider.customHist1D)
+                if channels == 2:
+                    refHist = np.float32(ref.backHist2D)
+                    riderHist = np.float32(rider.customHist2D)
                 if show:
                     fig1 = plt.figure(f"REF: {ref.name}")
                     displayHist(refHist, fig1, mod=1)
@@ -215,11 +218,9 @@ def fullHistComp(riders, fileName, show=False):
                 else:
                     row.append(r)
             table.append(row)
-            
 
         table.append([f"{utils.bcolors.OKGREEN}{metricName}", f"Score: {score}/10", f"better is {mod}{utils.bcolors.ENDC}"])
         tables.append(table)
-
 
     original_stdout = sys.stdout
     with open(fileName, 'w') as f:

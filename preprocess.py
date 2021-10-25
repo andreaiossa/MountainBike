@@ -55,11 +55,11 @@ class rider():
                 self.frameAndMasksCustom, self.frameAndMasksCustomFull = videoParsing.detectronOnVideo(video, predictor, refine=True, verbose=True)
         if mod == "bSub":
             if not video:
-                self.frameAndMasksBack = videoParsing.backgroundSub(self.backVid,0,100000, 80)
-                self.frameAndMasksFront = videoParsing.backgroundSub(self.frontVid,0,100000, 80)
+                self.frameAndMasksBack = videoParsing.backgroundSub(self.backVid, 0, 100000, 80, filterPerc=True)
+                self.frameAndMasksFront = videoParsing.backgroundSub(self.frontVid, 0, 100000, 80, filterPerc=True)
             else:
-                self.frameAndMasksCustom = videoParsing.backgroundSub(video,0,100000, 80)
-                
+                self.frameAndMasksCustom = videoParsing.backgroundSub(video, 0, 100000, 80, filterPerc=True)
+
     def collectHists(self, mod="identification"):
         if mod == "identification":
             self.frontHists1D = []
@@ -103,15 +103,15 @@ class rider():
                 self.customHists1D.append(hist1D)
                 self.customHists2D.append(hist2D)
 
-    def squashHist(self, mod="median",channels=1):
-        if channels == 1:
-            self.frontHist1D = hist.squashHists(self.frontHists1D, mod)
-            self.backHist1D = hist.squashHists(self.backHists1D, mod)
-            self.customHist1D = hist.squashHists(self.customHists1D, mod)
-        if channels == 2:
-            self.frontHist2D = hist.squashHists(self.frontHists2D, mod)
-            self.backHist2D = hist.squashHists(self.backHists2D, mod)
-            self.customHist2D = hist.squashHists(self.customHists2D, mod)
+    def squashHist(self, mod="median", channels=1):
+
+        self.frontHist1D = hist.squashHists(self.frontHists1D, mod)
+        self.backHist1D = hist.squashHists(self.backHists1D, mod)
+        self.customHist1D = hist.squashHists(self.customHists1D, mod)
+
+        self.frontHist2D = hist.squashHists(self.frontHists2D, mod)
+        self.backHist2D = hist.squashHists(self.backHists2D, mod)
+        self.customHist2D = hist.squashHists(self.customHists2D, mod)
 
 
 RIDERfolder = "./files/RIDERS/"
@@ -157,7 +157,7 @@ def updateRider(RIDER):
     pickle.dump(RIDER, open(picklesFolder + f"{RIDER.name}.p", "wb"))
 
 
-def checkDetectron(frameAndMask):
+def checkMasks(frameAndMask):
     for frame, mask in frameAndMask:
         if not isinstance(mask, bool):
             cut = cv2.bitwise_and(frame, frame, mask=mask)
