@@ -45,7 +45,7 @@ def compute2DHist(img, mask=None, normalize=False, difference=False, pixels=None
     s_ranges = [0, 256]
     ranges = h_ranges + s_ranges
 
-    hist = cv2.calcHist([static_image_HSV], channels, mask, [8, 8], ranges, accumulate=False)
+    hist = cv2.calcHist([static_image_HSV], channels, mask, [64, 8], ranges, accumulate=False)
     if not isinstance(difference, bool):
         # print("\nHIST BEFORE \n", hist)
         # print("\n WOODS \n", hist)
@@ -75,7 +75,7 @@ def compute1DHist(img, mask=None, normalize=False):
     h_ranges = [0, 180]
     s_ranges = [0, 256]
 
-    histH = cv2.calcHist([static_image_HSV], [0], mask, [8], h_ranges, accumulate=False)
+    histH = cv2.calcHist([static_image_HSV], [0], mask, [64], h_ranges, accumulate=False)
     histS = cv2.calcHist([static_image_HSV], [1], mask, [8], s_ranges, accumulate=False)
 
     if normalize:

@@ -103,7 +103,7 @@ class rider():
                 self.customHists1D.append(hist1D)
                 self.customHists2D.append(hist2D)
 
-    def squashHist(self, mod="median", channels=1):
+    def squashHist(self, mod="median"):
 
         self.frontHist1D = hist.squashHists(self.frontHists1D, mod)
         self.backHist1D = hist.squashHists(self.backHists1D, mod)

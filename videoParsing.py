@@ -46,7 +46,7 @@ def backgroundSub(video, start, end, tresh, filterPerc=False, show=False):
         counter += 1
         ret, frame = cap.read()
         fgmask = fgbg.apply(frame)
-        kernel = np.ones((5, 5), np.uint8)
+        kernel = np.ones((15, 15), np.uint8)
         fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_CLOSE, kernel)
         if counter > 1:
             if filterPerc:
