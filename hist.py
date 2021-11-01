@@ -162,7 +162,9 @@ def fullHistComp(riders, fileName, channels=1, show=False):
         mod = metricTuple[1]
         metricName = metricTuple[2]
         fun = metricTuple[3]
-        score = 0
+        scoreIn1 = 0
+        scoreIn3 = 0
+        scoreIn5 = 0
         table = []
         for ref in riders:
             tmpRow = []
@@ -171,6 +173,7 @@ def fullHistComp(riders, fileName, channels=1, show=False):
             maximum = None
             match = False
             shouldMatch = None
+            results = []
             for rider in riders:
                 if channels == 1:
                     refHist = np.float32(ref.backHist1D)
@@ -193,23 +196,34 @@ def fullHistComp(riders, fileName, channels=1, show=False):
                     if not minimum:
                         minimum = result
                         match = rider
+                        results.append((rider, result))
                     elif result < minimum:
                         minimum = result
                         match = rider
+                        results.append((rider, result))
                 if mod == "max":
                     if not maximum:
                         maximum = result
                         match = rider
+                        results.append((rider, result))
                     elif result > maximum:
                         maximum = result
                         match = rider
+                        results.append((rider, result))
                 if rider.name == ref.name:
                     shouldMatch = result
 
                 tmpRow.append(result)
 
-            best = minimum if mod == "min" else maximum
-            score = score + 1 if ref.name == match.name else score
+            sortedResults = sorted(results, key=lambda x: x[1]) if mod == "min" else sorted(results, reverse=True, key=lambda x: x[1])
+            sortedRiders = list(map(lambda x: x[0], sortedResults))
+            best = sortedResults[0][1]
+            refPosition = sortedRiders.index(ref)
+
+            scoreIn1 = scoreIn1 + 1 if refPosition == 0 else scoreIn1
+            scoreIn3 = scoreIn3 + 1 if refPosition <= 2 else scoreIn3
+            scoreIn5 = scoreIn5 + 1 if refPosition <= 5 else scoreIn5
+
             for r in tmpRow:
                 if r == shouldMatch and r == best:
                     row.append(f"{utils.bcolors.OKBLUE}{r}{utils.bcolors.ENDC}")
@@ -219,7 +233,7 @@ def fullHistComp(riders, fileName, channels=1, show=False):
                     row.append(r)
             table.append(row)
 
-        table.append([f"{utils.bcolors.OKGREEN}{metricName}", f"Score: {score}/10", f"better is {mod}{utils.bcolors.ENDC}"])
+        table.append([f"{utils.bcolors.OKGREEN}{metricName}", f"Score in 1: {scoreIn1}/10", f"Score in 3: {scoreIn3}/10", f"Score in 5: {scoreIn5}/10" f"better is {mod}{utils.bcolors.ENDC}"])
         tables.append(table)
 
     original_stdout = sys.stdout

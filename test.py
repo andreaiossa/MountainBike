@@ -14,22 +14,22 @@ riders = sorted(riders, key=lambda x: int(x.name.split("RIDER")[1]))
 FULL PIPELINE TEST
 '''
 
-for rider in riders:
-    rider.collectMasks(mod="bSub")
-    rider.collectMasks(video=rider.customVid, mod="bSub")
-    # rider.collectHists(mod="identification")
-    # rider.collectHists(mod="custom")
-    # rider.squashHist(mod="median")
-    # preprocess.updateRider(rider)
+# for rider in riders:
+#     rider.collectMasks(mod="bSub")
+#     rider.collectMasks(video=rider.customVid, mod="bSub")
+#     # rider.collectHists(mod="identification")
+#     # rider.collectHists(mod="custom")
+#     # rider.squashHist(mod="median")
+#     # preprocess.updateRider(rider)
 
 # zero = pickle.load(open("./files/pickles/RIDER2.p", "rb"))
 
 # print(len(riders[1].frameAndMasksCustom))
-preprocess.checkMasks(riders[1].frameAndMasksCustom)
-# print(len(riders[1].frameAndMasksBack))
-preprocess.checkMasks(riders[1].frameAndMasksBack)
+# preprocess.checkMasks(riders[1].frameAndMasksCustom)
+# # print(len(riders[1].frameAndMasksBack))
+# preprocess.checkMasks(riders[1].frameAndMasksBack)
 
-# hist.fullHistComp(riders, "bSub_64_H.txt")
+hist.fullHistComp(riders, "FW.txt")
 # hist.fullHistComp(riders, "bSub_64_HS.txt", channels=2)
 ''' SHOW BACK HISTOGRAMS'''
 
