@@ -28,6 +28,10 @@ def backgroundSub(video, start, end, tresh, filterPerc=False, show=False):
     '''
     Given a video, the starting frame, the number of frames to parse and the treshold of the BS, it gives the last image and mask for future use.
     '''
+
+    downscaleVideo(video)
+    video = "./files/temp/test.avi"
+
     cap, length, fps, duration = videoInfo(video)
     end = length if end > length else end
 
@@ -38,6 +42,7 @@ def backgroundSub(video, start, end, tresh, filterPerc=False, show=False):
     fgbg = cv2.createBackgroundSubtractorMOG2(varThreshold=tresh)
     counter = 0
 
+    bgFrame = None
     frame = None
     fgmask = None
     framesAndMasks = []
@@ -45,6 +50,8 @@ def backgroundSub(video, start, end, tresh, filterPerc=False, show=False):
     while (counter < end):
         counter += 1
         ret, frame = cap.read()
+        if counter == 1:
+            bgFrame = frame
         fgmask = fgbg.apply(frame)
         kernel = np.ones((15, 15), np.uint8)
         fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_CLOSE, kernel)
@@ -70,7 +77,7 @@ def backgroundSub(video, start, end, tresh, filterPerc=False, show=False):
         cap.release()
         cv2.destroyAllWindows()
 
-    return framesAndMasks
+    return framesAndMasks, bgFrame
 
 
 def bboxBackgroundSub(video, start, end, tresh, show=False, verbose=False, saveMod=False):
@@ -244,3 +251,21 @@ def detectronOnVideo(video, predictor, refine=False, verbose=False, show=False):
             print(f"{utils.bcolors.presetINFO} Current frame: {counter} over {length}, Avg Exp Time for frame: {round(avgTime,2)} sec, Exp time left {expTime}")
 
     return frameAndMasks, frameAndMasksFull
+
+
+def downscaleVideo(video):
+    cap, length, fps, duration = videoInfo(video)
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter('./files/temp/test.avi', fourcc, fps, (400, 400))
+
+    while True:
+        ret, frame = cap.read()
+        if ret == True:
+            b = cv2.resize(frame, (400, 400), interpolation=cv2.INTER_AREA)
+            out.write(b)
+        else:
+            break
+
+    cap.release()
+    out.release()
+    cv2.destroyAllWindows()

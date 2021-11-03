@@ -28,7 +28,6 @@ def showImgs(images, scale=1):
     counter = 0
     for image in images:
         counter += 1
-        print(counter)
         w = int(image.shape[1] / scale)
         h = int(image.shape[0] / scale)
         resized = cv2.resize(image, (w, h))
@@ -39,6 +38,13 @@ def showImgs(images, scale=1):
 def arrayNP2CV(array):
     h, w = array.shape
     array2 = cv2.CreateMat(h, w, cv2.CV_32F)
+
+
+def downscale(img):
+
+    dim = (200, 200)
+
+    return cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
 
 
 metrics = [(distance.cosine, "min", "COSINE", "PY"), (distance.braycurtis, "min", "BRAYCURTIS", "PY"), (distance.chebyshev, "min", "CHEBYSHEV", "PY"), (distance.minkowski, "min", "MINKOWSKI", "PY"), (distance.euclidean, "min", "EUCLIDIAN", "PY"), (distance.cityblock, "min", "MANATTHAM", "PY"), (cv2.HISTCMP_CORREL, "max", "CORRELATION", "CV"), (cv2.HISTCMP_INTERSECT, "max", "INTERSECTION", "CV"), (cv2.HISTCMP_CHISQR, "min", "CHISQR", "CV"), (cv2.HISTCMP_CHISQR_ALT, "min", "ALTERNATIVE CHISQR", "CV"), (cv2.HISTCMP_BHATTACHARYYA, "min", "BHATTACHARYYA", "CV"), (cv2.HISTCMP_KL_DIV, "min", "KULLBACK-LEIBLER DIVERGENCE", "CV"), (stats.wasserstein_distance, "min", "EARTH MOVER", "PY")]

@@ -8,66 +8,60 @@ import sys
 from tabulate import tabulate
 import hist
 
+### CREATE EMPYT RIDERS FROM FOLDER
+
+# RIDERS = preprocess.collectRidersFolders()
+# preprocess.processRider(RIDERS)
+
+### IMPORT RIDERS PICKLES AND PROCESS
+
 riders = preprocess.collectRiders()
 riders = sorted(riders, key=lambda x: int(x.name.split("RIDER")[1]))
-'''
-FULL PIPELINE TEST
-'''
 
 # for rider in riders:
-#     rider.collectMasks(mod="bSub")
-#     rider.collectMasks(video=rider.customVid, mod="bSub")
-#     # rider.collectHists(mod="identification")
-#     # rider.collectHists(mod="custom")
-#     # rider.squashHist(mod="median")
-#     # preprocess.updateRider(rider)
 
-# zero = pickle.load(open("./files/pickles/RIDER2.p", "rb"))
+#     # rider.processFiles(customFile="jump")
+#     # rider.collectMasksCancelletto()
+#     # rider.collectMasksVid()
+#     rider.collectHistsCancelletto(mod="standard", normalization=cv2.NORM_L2)
+#     rider.collectHistsVid(mod="standard", normalization=cv2.NORM_L2)
+#     rider.squashHist(mod="median")
+#     preprocess.updateRider(rider)
 
-# print(len(riders[1].frameAndMasksCustom))
-# preprocess.checkMasks(riders[1].frameAndMasksCustom)
-# # print(len(riders[1].frameAndMasksBack))
-# preprocess.checkMasks(riders[1].frameAndMasksBack)
+# ### COMPARISON
 
-hist.fullHistComp(riders, "FW.txt")
-# hist.fullHistComp(riders, "bSub_64_HS.txt", channels=2)
-''' SHOW BACK HISTOGRAMS'''
+# hist.fullHistComp(riders, "bSub_8_H_L2.txt")
+# hist.fullHistComp(riders, "bSub_8-8_HS_L2.txt", channels=2)
 
-# for rider in riders:
-#     fig1 = plt.figure(f"{rider.name}")
-#     hist.displayHist(rider.backHist2D, fig1, mod=1)
-#     plt.show()
-''' SHOW FRAME RIDER'''
-# for rider in riders:
-#     if rider.name == "RIDER1":
-#         preprocess.checkDetectron(rider.frameAndMasksCustom)
+cv2.imshow("c", riders[0].bgCustom)
+cv2.imshow("ca", riders[0].bgBack)
+cv2.waitKey(0)
 
-# for rider in riders:
-#     if rider.name == "RIDER1":
-#         preprocess.checkDetectron(rider.frameAndMasksCustom)
+### FRAMES
 
-# mask = "files/temp/testMask.jpg"
-# img = "files/temp/testImg.jpg"
+# # print(len(riders[1].frameAndMasksCustom))
+# # preprocess.checkMasks(riders[1].frameAndMasksCustom)
+# # # # # print(len(riders[1].frameAndMasksBack))
+# # # preprocess.checkMasks(riders[1].frameAndMasksBack)
 
-# img = cv2.imread(img)
-# mask = cv2.imread(mask, cv2.IMREAD_GRAYSCALE)
-# outputMask = np.where((mask > 1), 1, 0)
-# outputMask = (outputMask * 255).astype("uint8")
-# kernel = np.ones((5, 5), np.uint8)
+# # cv2.imshow("test", zero.frameAndMasksCustomFull[0][0])
+# # cv2.waitKey(0)
 
-# closing1 = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-# closing2 = cv2.morphologyEx(outputMask, cv2.MORPH_CLOSE, kernel)
+### HISTOGRAMS
 
-# cut = cv2.bitwise_and(img, img, mask=mask)
-# cut1 = cv2.bitwise_and(img, img, mask=outputMask)
-# cut2 = cv2.bitwise_and(img, img, mask=closing1)
-# cut3 = cv2.bitwise_and(img, img, mask=closing2)
+# a = pickle.load(open("./files/pickles/RIDER2.p", "rb"))
+# b = pickle.load(open("./files/pickles/RIDER1.p", "rb"))
+# preprocess.checkMasks(a.frameAndMasksCustom)
+# preprocess.checkMasks(b.frameAndMasksCustom)
+# print(a.bgBack.shape)
+# print(a.bgCustom.shape)
 
-# cv2.imshow("fg", outputMask)
-# cv2.imshow("closing1", closing1)
-# cv2.imshow("closing2", closing2)
-# cv2.imshow("cut fg", cut1)
-# cv2.imshow("cut closing1", cut2)
-# cv2.imshow("cut closing2", cut3)
-# cv2.imshow("original", cut)
-# cv2.waitKey(0)
+print(riders[1].customHist1D)
+
+figA = plt.figure()
+axA = figA.add_subplot()
+
+axA.plot(riders[1].backHist1D, color="black")
+axA.plot(riders[1].customHist1D, color="r")
+axA.plot(riders[0].customHist1D, color="b")
+plt.show()

@@ -45,18 +45,18 @@ def compute2DHist(img, mask=None, normalize=False, difference=False, pixels=None
     s_ranges = [0, 256]
     ranges = h_ranges + s_ranges
 
-    hist = cv2.calcHist([static_image_HSV], channels, mask, [64, 8], ranges, accumulate=False)
+    hist = cv2.calcHist([static_image_HSV], channels, mask, [8, 8], ranges, accumulate=False)
     if not isinstance(difference, bool):
-        # print("\nHIST BEFORE \n", hist)
-        # print("\n WOODS \n", hist)
         hist = diffHist(hist, difference)
-        # print("\nHIST after \n", hist)
 
-    if normalize:
-        # cv2.normalize(hist, hist, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
-        cv2.normalize(hist, hist, norm_type=cv2.NORM_L2)
-        # denominator = pixels if pixels else hist.sum()
-        #hist = hist / hist.sum()
+    if normalize == "density":
+        hist = hist / hist.sum()
+
+    elif normalize == cv2.NORM_MINMAX:
+        cv2.normalize(hist, hist, alpha=0, beta=1, norm_type=normalize)
+
+    elif normalize:
+        cv2.normalize(hist, hist, norm_type=normalize)
 
     return hist
 
@@ -75,12 +75,19 @@ def compute1DHist(img, mask=None, normalize=False):
     h_ranges = [0, 180]
     s_ranges = [0, 256]
 
-    histH = cv2.calcHist([static_image_HSV], [0], mask, [64], h_ranges, accumulate=False)
+    histH = cv2.calcHist([static_image_HSV], [0], mask, [8], h_ranges, accumulate=False)
     histS = cv2.calcHist([static_image_HSV], [1], mask, [8], s_ranges, accumulate=False)
 
-    if normalize:
-        cv2.normalize(histH, histH, norm_type=cv2.NORM_L2)
-        cv2.normalize(histS, histS, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+    if normalize == "density":
+        histH = histH / histH.sum()
+
+    elif normalize == cv2.NORM_MINMAX:
+        cv2.normalize(histH, histH, alpha=0, beta=1, norm_type=normalize)
+        cv2.normalize(histS, histS, alpha=0, beta=1, norm_type=normalize)
+
+    elif normalize:
+        cv2.normalize(histH, histH, norm_type=normalize)
+        cv2.normalize(histS, histS, norm_type=normalize)
 
     return (histH, histS)
 
@@ -192,24 +199,7 @@ def fullHistComp(riders, fileName, channels=1, show=False):
                     result = compareHistCV(riderHist, refHist, metric)
                 elif fun == "PY":
                     result = compareHistPY(riderHist, refHist, metric)
-                if mod == "min":
-                    if not minimum:
-                        minimum = result
-                        match = rider
-                        results.append((rider, result))
-                    elif result < minimum:
-                        minimum = result
-                        match = rider
-                        results.append((rider, result))
-                if mod == "max":
-                    if not maximum:
-                        maximum = result
-                        match = rider
-                        results.append((rider, result))
-                    elif result > maximum:
-                        maximum = result
-                        match = rider
-                        results.append((rider, result))
+                results.append((rider.name, result))
                 if rider.name == ref.name:
                     shouldMatch = result
 
@@ -218,7 +208,7 @@ def fullHistComp(riders, fileName, channels=1, show=False):
             sortedResults = sorted(results, key=lambda x: x[1]) if mod == "min" else sorted(results, reverse=True, key=lambda x: x[1])
             sortedRiders = list(map(lambda x: x[0], sortedResults))
             best = sortedResults[0][1]
-            refPosition = sortedRiders.index(ref)
+            refPosition = sortedRiders.index(ref.name)
 
             scoreIn1 = scoreIn1 + 1 if refPosition == 0 else scoreIn1
             scoreIn3 = scoreIn3 + 1 if refPosition <= 2 else scoreIn3
@@ -233,7 +223,7 @@ def fullHistComp(riders, fileName, channels=1, show=False):
                     row.append(r)
             table.append(row)
 
-        table.append([f"{utils.bcolors.OKGREEN}{metricName}", f"Score in 1: {scoreIn1}/10", f"Score in 3: {scoreIn3}/10", f"Score in 5: {scoreIn5}/10" f"better is {mod}{utils.bcolors.ENDC}"])
+        table.append([f"{utils.bcolors.OKGREEN}{metricName}", f"Score in 1: {scoreIn1}/10", f"Score in 3: {scoreIn3}/10", f"Score in 5: {scoreIn5}/10 " f"better is {mod}{utils.bcolors.ENDC}"])
         tables.append(table)
 
     original_stdout = sys.stdout
@@ -243,3 +233,16 @@ def fullHistComp(riders, fileName, channels=1, show=False):
             print(tabulate(tab, headers=headers))
             print("\n")
         sys.stdout = original_stdout
+
+
+def histNormalize(hist, normalize=cv2.NORM_MINMAX):
+    if normalize == "density":
+        hist = hist / hist.sum()
+
+    elif normalize == cv2.NORM_MINMAX:
+        cv2.normalize(hist, hist, alpha=0, beta=1, norm_type=normalize)
+
+    elif normalize:
+        cv2.normalize(hist, hist, norm_type=normalize)
+
+    return hist
