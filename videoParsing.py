@@ -269,3 +269,25 @@ def downscaleVideo(video):
     cap.release()
     out.release()
     cv2.destroyAllWindows()
+
+
+def saveVideoBGSub(rider):
+    cap1, length, fpsCustom, duration = videoInfo(rider.customVid)
+    cap2, length, fpsBack, duration = videoInfo(rider.backVid)
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    outBack = cv2.VideoWriter(rider.folder + '_bgSubBack.avi', fourcc, fpsBack, (400, 400))
+    outCustom = cv2.VideoWriter(rider.folder + '_bgSubWoods.avi', fourcc, fpsCustom, (400, 400))
+
+    for frame, mask in rider.frameAndMasksBack:
+        cut = cv2.bitwise_and(frame, frame, mask=mask)
+        outBack.write(cut)
+
+    for frame, mask in rider.frameAndMasksCustom:
+        cut = cv2.bitwise_and(frame, frame, mask=mask)
+        outCustom.write(cut)
+
+    cap1.release()
+    cap2.release()
+    outBack.release()
+    outCustom.release()
+    cv2.destroyAllWindows()

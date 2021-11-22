@@ -85,23 +85,3 @@ def flann(img1, img2, des1, des2, kp1, kp2, min=10):
     img3 = cv2.drawMatches(img1, kp1, img2, kp2, good, None, **draw_params)
     cv2.imshow("FLANN", img3)
     cv2.waitKey(0)
-
-
-# img = "./files/temp/testHelm.png"
-# img2 = "./files/RIDERS/RIDER2/2_id_back.jpg"
-# img = cv2.imread(img)
-# img2 = cv2.imread(img2)
-
-# mser = cv2.MSER_create()
-# regions = mser.detectRegions(img)
-# regions2 = mser.detectRegions(img2)
-# print(regions[1].shape)
-# print(regions2[1].shape)
-# hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in regions[0]]
-# cv2.polylines(vis, hulls, 1, (0, 255, 0))
-# cv2.imshow('img', vis)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
-
-# riders = preprocess.collectRiders()
-# riders = sorted(riders, key=lambda x: int(x.name.split("RIDER")[1]))

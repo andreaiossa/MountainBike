@@ -16,8 +16,8 @@ def compareHistCV(hist1, hist2, metric):
     Gives the result of the comparison of two histograms with defined metric.
     METRICS: CV_COMP_CORREL (best is higher), CV_COMP_INTERSECT (best is higher), CV_COMP_CHISQR (best is lower), CV_COMP_BHATTACHARYYA (best is lower)
     '''
-    result = cv2.compareHist(hist1.flatten(), hist2.flatten(), metric)
-    return result
+
+    return cv2.compareHist(hist1.flatten(), hist2.flatten(), metric)
 
 
 def compareHistPY(hist1, hist2, metric):
@@ -25,11 +25,11 @@ def compareHistPY(hist1, hist2, metric):
     Gives the result of the comparison of two histograms with defined metric.
     METRICS: CV_COMP_CORREL (best is higher), CV_COMP_INTERSECT (best is higher), CV_COMP_CHISQR (best is lower), CV_COMP_BHATTACHARYYA (best is lower)
     '''
-    result = metric(hist1.flatten(), hist2.flatten())
-    return result
+
+    return metric(hist1.flatten(), hist2.flatten())
 
 
-def compute2DHist(img, mask=None, normalize=False, difference=False, pixels=None):
+def compute2DHist(img, mask=None, normalize=False, difference=False):
     '''
     Given img (BGR) and mask return the 8 bins histogram in HS color space
     '''
@@ -89,7 +89,13 @@ def compute1DHist(img, mask=None, normalize=False):
         cv2.normalize(histH, histH, norm_type=normalize)
         cv2.normalize(histS, histS, norm_type=normalize)
 
-    return (histH, histS)
+    return histH
+
+
+def softMaxHist(hist):
+    histExp = np.exp(hist)
+
+    return histExp / histExp.sum()
 
 
 def displayHist(hist, fig, mod=1):
@@ -169,6 +175,9 @@ def fullHistComp(riders, fileName, channels=1, show=False):
         mod = metricTuple[1]
         metricName = metricTuple[2]
         fun = metricTuple[3]
+        softmax = False
+        if len(metricTuple) == 5:
+            softmax = True
         scoreIn1 = 0
         scoreIn3 = 0
         scoreIn5 = 0
@@ -176,9 +185,6 @@ def fullHistComp(riders, fileName, channels=1, show=False):
         for ref in riders:
             tmpRow = []
             row = [ref.name]
-            minimum = None
-            maximum = None
-            match = False
             shouldMatch = None
             results = []
             for rider in riders:
@@ -195,6 +201,9 @@ def fullHistComp(riders, fileName, channels=1, show=False):
                     fig1 = plt.figure(rider.name)
                     displayHist(riderHist, fig1, mod=1)
                     plt.show()
+                if softmax:
+                    refHist = softMaxHist(refHist)
+                    riderHist = softMaxHist(riderHist)
                 if fun == "CV":
                     result = compareHistCV(riderHist, refHist, metric)
                 elif fun == "PY":
