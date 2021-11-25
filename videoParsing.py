@@ -53,6 +53,7 @@ def backgroundSub(video, start, end, tresh, filterPerc=False, show=False):
         if counter == 1:
             bgFrame = frame
         fgmask = fgbg.apply(frame)
+        fgmask = cv2.threshold(fgmask, 200, 255, cv2.THRESH_BINARY)[1]
         kernel = np.ones((15, 15), np.uint8)
         fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_CLOSE, kernel)
         if counter > 1:

@@ -103,7 +103,7 @@ class rider():
                 hist1D = hist.compute1DHist(frame, mask=mask, normalize=normalization)
                 hist2D = hist.compute2DHist(frame, mask=mask, normalize=normalization)
 
-                self.customHists1D.append(hist1D[0])
+                self.customHists1D.append(hist1D)
                 self.customHists2D.append(hist2D)
         if mod == "diff":
             for frame, mask in self.frameAndMasksCustom:
@@ -112,7 +112,7 @@ class rider():
                 histBg1D = hist.compute1DHist(self.bgCustom)
                 histBg2D = hist.compute2DHist(self.bgCustom)
 
-                H = hist.diffHist(hist1D[0], histBg1D[0])
+                H = hist.diffHist(hist1D, histBg1D)
                 HS = hist.diffHist(hist2D, histBg2D)
 
                 H = hist.histNormalize(H, normalize=normalization)

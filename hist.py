@@ -50,7 +50,8 @@ def compute2DHist(img, mask=None, normalize=False, difference=False):
         hist = diffHist(hist, difference)
 
     if normalize == "density":
-        hist = hist / hist.sum()
+        if hist.sum() > 0:
+            hist = hist / hist.sum()
 
     elif normalize == cv2.NORM_MINMAX:
         cv2.normalize(hist, hist, alpha=0, beta=1, norm_type=normalize)
@@ -79,7 +80,8 @@ def compute1DHist(img, mask=None, normalize=False):
     histS = cv2.calcHist([static_image_HSV], [1], mask, [8], s_ranges, accumulate=False)
 
     if normalize == "density":
-        histH = histH / histH.sum()
+        if histH.sum() > 0:
+            histH = histH / histH.sum()
 
     elif normalize == cv2.NORM_MINMAX:
         cv2.normalize(histH, histH, alpha=0, beta=1, norm_type=normalize)
