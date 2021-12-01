@@ -9,25 +9,25 @@ from PIL import Image
 import utils
 
 
-def instantiatePredictor():
-    '''
-    Instantiate detectron2 Mask rcnn predictor from web
-    '''
-    print("Generating predicor...")
-    cfg = get_cfg()
-    if (isfile("./config.yaml")):
-        cfg.merge_from_file("./config.yaml")
-    else:
-        cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
-        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
-        cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
+# def instantiatePredictor():
+#     '''
+#     Instantiate detectron2 Mask rcnn predictor from web
+#     '''
+#     print("Generating predicor...")
+#     cfg = get_cfg()
+#     if (isfile("./config.yaml")):
+#         cfg.merge_from_file("./config.yaml")
+#     else:
+#         cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
+#         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
+#         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
 
-    with open("config.yaml", "w") as f:
-        f.write(cfg.dump())
+#     with open("config.yaml", "w") as f:
+#         f.write(cfg.dump())
 
-    predictor = DefaultPredictor(cfg)
-    print("Done")
-    return predictor
+#     predictor = DefaultPredictor(cfg)
+#     print("Done")
+#     return predictor
 
 
 def computeSegmentationMask(image, predictor, refine=False, CocoClass=0, verbose=True):
@@ -74,3 +74,53 @@ def refineMask(mask, im):
     outputMask = (outputMask * 255).astype("uint8")
 
     return outputMask
+
+def maskBoundingBox(mask):
+    contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    x, y, w, h = 0, 0, 0, 0
+    for c in contours:
+        xc, yc, wc, hc = cv2.boundingRect(c)
+        if wc > w and hc > h:
+            x, y, w, h = xc, yc, wc, hc
+
+    return x, y, w, h
+
+
+def cutMask(mask, mod ="h", inverse =False, dim=4):
+    x, y, w, h = maskBoundingBox(mask)
+    height, width= mask.shape
+
+    top = mask.copy()
+    # middle = mask.copy()
+    bottom = mask.copy()
+
+    # if mod == "h": 
+    #     i1 = int(x + w / 3)
+    #     i2 = int(i1 + w / 3)
+    #     bottom[:, i1: width] = 0
+    #     middle[:, 0:i1] = 0
+    #     middle[:, i2:width] = 0
+    #     top[:, 0:i2] = 0
+    # elif mod == "v":
+    #     i1 = int(y + h / 3)
+    #     i2 = int(i1 + h / 3)
+    #     top[i1: height] = 0
+    #     middle[0:i1] = 0
+    #     middle[i2:height] = 0
+    #     bottom[0:i2] = 0
+    
+    if mod == "v": 
+        if inverse:
+            i= int(x + w*(dim-1) / dim)
+            bottom[:, i:width] = 0
+            top[:, 0:i] = 0
+        else:
+            i = int(x+w / dim)
+            bottom[:, 0:i] = 0
+            top[:, i:width] = 0
+    elif mod == "h":
+        i = int(y + h / dim)
+        top[i: height] = 0
+        bottom[0:i] = 0
+
+    return top, bottom

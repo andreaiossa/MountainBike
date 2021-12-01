@@ -5,6 +5,7 @@ import videoParsing
 import hist
 import utils
 import pickle
+import numpy as np
 
 
 class rider():
@@ -130,6 +131,40 @@ class rider():
         # self.frontHist2D = hist.squashHists(self.frontHists2D, mod)
         self.backHist2D = hist.squashHists(self.backHists2D, mod)
         self.customHist2D = hist.squashHists(self.customHists2D, mod)
+
+    def singleFrameCancelletto(self):
+        maxDiff = 0
+        for f, m in self.frameAndMasksBack:
+            cut = cv2.bitwise_and(f, f, mask=m)
+            percentageDiff = (np.count_nonzero(cut) * 100) / cut.size
+            if percentageDiff >= maxDiff:
+                self.maxFrameBack = f
+                m = cv2.threshold(m, 200, 255, cv2.THRESH_BINARY)[1]
+                self.maxMaskBack = m
+                maxDiff = percentageDiff
+
+    def singleFrameCustom(self):
+        maxDiff = 0
+        for f, m in self.frameAndMasksCustom:
+            cut = cv2.bitwise_and(f, f, mask=m)
+            percentageDiff = (np.count_nonzero(cut) * 100) / cut.size
+            if percentageDiff >= maxDiff:
+                self.maxFrameCustom = f
+                m = cv2.threshold(m, 200, 255, cv2.THRESH_BINARY)[1]
+                self.maxMaskCustom = m
+                maxDiff = percentageDiff
+
+    def collectMaxHistBack(self, normalization):
+        self.topBack, self.bottomBack = segmentation.cutMask(self.maxMaskBack, mod="v", inverse=False, dim=6)
+        self.helmetHistBack2D = hist.compute2DHist(self.maxFrameBack, mask=self.topBack, normalize=normalization)
+        self.bottomHistBack2D = hist.compute2DHist(self.maxFrameBack, mask=self.bottomBack, normalize=normalization)
+
+
+    def collectMaxHistCustom(self, normalization):
+        self.topCustom, self.bottomCustom = segmentation.cutMask(self.maxMaskCustom, mod="v", inverse=True, dim=6)
+        self.helmetHistCustom2D = hist.compute2DHist(self.maxFrameCustom, mask=self.topCustom, normalize=normalization)
+        self.bottomHistCustom2D = hist.compute2DHist(self.maxFrameCustom, mask=self.bottomCustom, normalize=normalization)
+
 
 
 RIDERfolder = "./files/RIDERS/"

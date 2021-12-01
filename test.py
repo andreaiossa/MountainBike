@@ -11,6 +11,7 @@ import hist
 import videoParsing
 from scipy.spatial import distance
 import utils
+import segmentation
 
 ### CREATE EMPYT RIDERS FROM FOLDER
 
@@ -109,7 +110,7 @@ riders = sorted(riders, key=lambda x: int(x.name.split("RIDER")[1]))
 # # cv2.waitKey(0)
 
 # decoy, decoyMask = riders[3].frameAndMasksCustom[15]
-# decoyImage = cv2.bitwise_and(decoy, decoy, mask=decoyMask)
+# decoyImage = cv2.bitwise_and(decoy, decoy, mask=decoyMask) 
 # decoyHsv_img = cv2.cvtColor(decoyImage, cv2.COLOR_BGR2HSV)
 
 # decoyThresh = cv2.inRange(decoyHsv_img, (0, 100, 100), (180, 255, 255))
@@ -124,15 +125,36 @@ riders = sorted(riders, key=lambda x: int(x.name.split("RIDER")[1]))
 # result2 = hist.compareHistCV(hist.softMaxHist(backHist), hist.softMaxHist(decoyHist), cv2.HISTCMP_BHATTACHARYYA)
 # print(result, result2)
 
-# --------------------------------------------------------- SLIT MASK ------------------------------------------------
+# --------------------------------------------------------- SPLIT MASK ------------------------------------------------
 
-f, m = riders[1].frameAndMasksCustom[15]
-cv2.imshow("0", m)
-x, y, w, h = utils.maskBoundingBox(m)
+# f, m = riders[0].frameAndMasksCustom[15]
+# m = cv2.threshold(m, 200, 255, cv2.THRESH_BINARY)[1]
+# top, bottom = segmentation.cutMask(m, mod="h")
 
-m2 = m.copy()
-m2[:, y:int(y + w / 2)] = 0
+# x, y, w, h = segmentation.maskBoundingBox(m)
+# m = cv2.rectangle(m, (x, y), (x+w, y+h), (255,0,0), 2)
 
-cv2.imshow("1", m)
-cv2.imshow("2", m2)
+# cv2.imshow("original", m)
+# cv2.imshow("top", top)
+# cv2.imshow("bottom", bottom)
+# cv2.waitKey(0)
+
+
+# -------------------------------------------------- TEST SINGLE FRAME --------------------------------------
+
+r = riders[0]
+
+r.singleFrameCancelletto()
+
+top, bottom = segmentation.cutMask(r.maxMaskBack, mod="v", inverse=False, dim=6)
+helmet = cv2.bitwise_and(r.maxFrameBack,r.maxFrameBack, mask=bottom)
+
+cv2.imshow("original", r.maxMaskBack)
+cv2.imshow("cut", helmet)
+cv2.imshow("top", top)
+cv2.imshow("bottom", bottom)
 cv2.waitKey(0)
+
+# cv2.imshow("f", r.maxFrameBack)
+# cv2.imshow("m", r.maxMaskBack)
+# cv2.waitKey(0)

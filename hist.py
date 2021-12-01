@@ -10,7 +10,6 @@ from tabulate import tabulate
 
 matplotlib.use('TkAgg')
 
-
 def compareHistCV(hist1, hist2, metric):
     '''
     Gives the result of the comparison of two histograms with defined metric.
