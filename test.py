@@ -142,19 +142,29 @@ riders = sorted(riders, key=lambda x: int(x.name.split("RIDER")[1]))
 
 # -------------------------------------------------- TEST SINGLE FRAME --------------------------------------
 
-r = riders[0]
+# r = riders[0]
 
-r.singleFrameCancelletto()
+# r.singleFrameCancelletto()
 
-top, bottom = segmentation.cutMask(r.maxMaskBack, mod="v", inverse=False, dim=6)
-helmet = cv2.bitwise_and(r.maxFrameBack,r.maxFrameBack, mask=bottom)
+# top, bottom = segmentation.cutMask(r.maxMaskBack, mod="v", inverse=False, dim=6)
+# helmet = cv2.bitwise_and(r.maxFrameBack,r.maxFrameBack, mask=bottom)
 
-cv2.imshow("original", r.maxMaskBack)
-cv2.imshow("cut", helmet)
-cv2.imshow("top", top)
-cv2.imshow("bottom", bottom)
-cv2.waitKey(0)
+# cv2.imshow("original", r.maxMaskBack)
+# cv2.imshow("cut", helmet)
+# cv2.imshow("top", top)
+# cv2.imshow("bottom", bottom)
+# cv2.waitKey(0)
 
 # cv2.imshow("f", r.maxFrameBack)
 # cv2.imshow("m", r.maxMaskBack)
 # cv2.waitKey(0)
+
+for rider in riders:
+    rider.singleFrameCancelletto()
+    rider.singleFrameCustom()
+    rider.collectMaxHistBack(normalization="density")
+    rider.collectMaxHistCustom(normalization="density")
+
+
+
+hist.fullHistCompHelmet(riders, "helmet_bSub_8_HS_density.txt")
