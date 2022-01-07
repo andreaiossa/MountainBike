@@ -12,6 +12,12 @@ import videoParsing
 from scipy.spatial import distance
 import utils
 import segmentation
+from PIL import Image
+from caffe.testCaffe import testCaffe
+import features
+
+from caffe.Caffe2Pytorch.caffe2pth.caffenet import *
+from scipy.spatial import distance
 
 ### CREATE EMPYT RIDERS FROM FOLDER
 
@@ -20,22 +26,66 @@ import segmentation
 
 ### IMPORT RIDERS PICKLES AND PROCESS
 
-riders = preprocess.collectRiders()
-riders = sorted(riders, key=lambda x: int(x.name.split("RIDER")[1]))
+# riders = preprocess.collectRiders()
+# riders = sorted(riders, key=lambda x: int(x.name.split("RIDER")[1]))
+
+# model = features.resNetIstantiateModel()
 
 # for rider in riders:
 
 #     # rider.processFiles(customFile="jump")
 #     # rider.collectMasksCancelletto()
 #     # rider.collectMasksVid()
-#     rider.collectHistsCancelletto(mod="standard", normalization=cv2.NORM_L2)
-#     rider.collectHistsVid(mod="standard", normalization=cv2.NORM_L2)
-#     rider.squashHist(mod="median")
+#     # rider.collectHistsCancelletto(mod="standard", normalization=cv2.NORM_L2)
+#     # rider.collectHistsVid(mod="standard", normalization=cv2.NORM_L2)
+#     # rider.squashHist(mod="median")
+#     rider.singleFrameCancelletto()
+#     rider.singleFrameCustom()
+#     rider.collectResNetFeatures(model)
 #     preprocess.updateRider(rider)
 
-# --------------------------------------------------------------------------------------- COMPARISON ------------------------------------------------------------------------------------------------------------------------------
+# # --------------------------------------------------------------------------------------- COMPARISON ------------------------------------------------------------------------------------------------------------------------------
 
-# hist.fullHistComp(riders, "bSub_8_H_L2.txt")
+# hist.fullHistComp(riders, "features.txt", channels="feature")
+model = features.resNetIstantiateModel()
+
+import torch
+import torch.nn as nn
+from torchvision import models
+from torchsummary import summary
+
+# Define the ResNet50-based Model
+# class ft_net(nn.Module):
+#     def __init__(self, class_num = 751):
+#         super(ft_net, self).__init__()
+#         #load the model
+#         model_ft = models.resnet50(pretrained=True) 
+#         # change avg pooling to global pooling
+#         # model_ft.avgpool = nn.AdaptiveAvgPool2d((1,1))
+#         self.model = model_ft
+
+#     def forward(self, x):
+#         x = self.model.conv1(x)
+#         x = self.model.bn1(x)
+#         x = self.model.relu(x)
+#         x = self.model.maxpool(x)
+#         x = self.model.layer1(x)
+#         x = self.model.layer2(x)
+#         x = self.model.layer3(x)
+#         x = self.model.layer4(x)
+#         x = self.model.avgpool(x)
+#         x = torch.squeeze(x)
+#         x = self.classifier(x) #use our classifier.
+#         return x
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(device)
+modelA = models.resnet50(pretrained=False)
+modelA.to(device)
+modelB = features.resNetIstantiateModel()
+modelB.to(device)
+summary(modelB,(3,224,224))
+
+
 # hist.fullHistComp(riders, "bSub_8-8_HS_L2.txt", channels=2)
 
 # cv2.imshow("c", riders[0].bgCustom)
@@ -132,11 +182,14 @@ riders = sorted(riders, key=lambda x: int(x.name.split("RIDER")[1]))
 # top, bottom = segmentation.cutMask(m, mod="h")
 
 # x, y, w, h = segmentation.maskBoundingBox(m)
+# crop = m[y:y+h, x:x+w]
 # m = cv2.rectangle(m, (x, y), (x+w, y+h), (255,0,0), 2)
+
 
 # cv2.imshow("original", m)
 # cv2.imshow("top", top)
 # cv2.imshow("bottom", bottom)
+# cv2.imshow("crop", crop)
 # cv2.waitKey(0)
 
 
@@ -145,26 +198,64 @@ riders = sorted(riders, key=lambda x: int(x.name.split("RIDER")[1]))
 # r = riders[0]
 
 # r.singleFrameCancelletto()
+# r.singleFrameCustom()
 
 # top, bottom = segmentation.cutMask(r.maxMaskBack, mod="v", inverse=False, dim=6)
-# helmet = cv2.bitwise_and(r.maxFrameBack,r.maxFrameBack, mask=bottom)
+# helmet = cv2.bitwise_and(r.maxFrameBack,r.maxFrameBack, mask=r.maxMaskBack)
 
-# cv2.imshow("original", r.maxMaskBack)
-# cv2.imshow("cut", helmet)
-# cv2.imshow("top", top)
-# cv2.imshow("bottom", bottom)
-# cv2.waitKey(0)
+# # cv2.imshow("original", r.maxMaskBack)
+# # cv2.imshow("cut", helmet)
+# # cv2.imshow("top", top)
+# # cv2.imshow("bottom", bottom)
+# # cv2.waitKey(0)
 
 # cv2.imshow("f", r.maxFrameBack)
-# cv2.imshow("m", r.maxMaskBack)
+# cv2.imshow("c", r.maxFrameCustom)
+# cv2.imshow("g", r.maxFrameCustomMask)
+# # cv2.imshow("m", r.maxMaskBack)
 # cv2.waitKey(0)
 
-for rider in riders:
-    rider.singleFrameCancelletto()
-    rider.singleFrameCustom()
-    rider.collectMaxHistBack(normalization="density")
-    rider.collectMaxHistCustom(normalization="density")
+# # for rider in riders:
+# #     rider.singleFrameCancelletto()
+# #     rider.singleFrameCustom()
+# #     rider.collectMaxHistBack(normalization="density")
+# #     rider.collectMaxHistCustom(normalization="density")
 
 
 
-hist.fullHistCompHelmet(riders, "helmet_bSub_8_HS_density.txt")
+# # hist.fullHistComp(riders, "helmet_bSub_8_HS_density.txt", channels=2)
+
+
+# -------------------------------------------------- TEST CAFFE --------------------------------------
+
+
+# r = riders[0]
+
+# r.singleFrameCancelletto()
+# r.singleFrameCustom()
+
+
+
+# A = segmentation.cropImageBbox(r.maxFrameBack, r.maxFrameBackMask)
+# B = segmentation.cropImageBbox(r.maxFrameCustom, r.maxFrameCustomMask)
+# # cv2.imshow("b", r.maxFrameBack)
+# # cv2.imshow("c", r.maxFrameCustom)
+# # cv2.imshow("m", r.maxFrameCustomMask)
+# # cv2.imshow("A", A)
+# # cv2.imshow("B", B)
+# # cv2.waitKey(0)
+
+# cv2.imwrite("A.jpg", A)
+# cv2.imwrite("B.jpg", B)
+
+# a = Image.open("A.jpg")
+# b = Image.open("B.jpg")
+
+# model = CaffeNet('caffe/models/ResNet_50/ResNet_50_test.prototxt')
+# model.load_state_dict(torch.load('caffe/test.pt'))
+
+# featureA = testCaffe(a, model)
+# featureB = testCaffe(b, model)
+
+# dst = distance.euclidean(featureA, featureB)
+# print(dst)

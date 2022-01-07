@@ -122,5 +122,8 @@ def cutMask(mask, mod ="h", inverse =False, dim=4):
         i = int(y + h / dim)
         top[i: height] = 0
         bottom[0:i] = 0
-
     return top, bottom
+
+def cropImageBbox(img, mask):
+    x, y, w, h = maskBoundingBox(mask)
+    return  img[y:y+h, x:x+w]

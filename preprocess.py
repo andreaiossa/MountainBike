@@ -6,6 +6,8 @@ import hist
 import utils
 import pickle
 import numpy as np
+from caffe.testCaffe import testCaffe
+from PIL import Image
 
 
 class rider():
@@ -139,6 +141,8 @@ class rider():
             percentageDiff = (np.count_nonzero(cut) * 100) / cut.size
             if percentageDiff >= maxDiff:
                 self.maxFrameBack = f
+                maxFrameBackMask = m
+                self.maxFrameBackMask = cv2.threshold(maxFrameBackMask, 200, 255, cv2.THRESH_BINARY)[1]
                 m = cv2.threshold(m, 200, 255, cv2.THRESH_BINARY)[1]
                 self.maxMaskBack = m
                 maxDiff = percentageDiff
@@ -150,6 +154,8 @@ class rider():
             percentageDiff = (np.count_nonzero(cut) * 100) / cut.size
             if percentageDiff >= maxDiff:
                 self.maxFrameCustom = f
+                maxFrameCustomMask = m
+                self.maxFrameCustomMask = cv2.threshold(maxFrameCustomMask, 200, 255, cv2.THRESH_BINARY)[1]
                 m = cv2.threshold(m, 200, 255, cv2.THRESH_BINARY)[1]
                 self.maxMaskCustom = m
                 maxDiff = percentageDiff
@@ -165,6 +171,16 @@ class rider():
         self.helmetHistCustom2D = hist.compute2DHist(self.maxFrameCustom, mask=self.topCustom, normalize=normalization)
         self.bottomHistCustom2D = hist.compute2DHist(self.maxFrameCustom, mask=self.bottomCustom, normalize=normalization)
 
+    def collectResNetFeatures(self, model):
+        a = segmentation.cropImageBbox(self.maxFrameBack, self.maxFrameBackMask)
+        b = segmentation.cropImageBbox(self.maxFrameCustom, self.maxFrameCustomMask)
+        
+        cv2.imwrite("files/temp/a.jpg",a)
+        cv2.imwrite("files/temp/b.jpg",b)
+        a = Image.open("files/temp/a.jpg")
+        b = Image.open("files/temp/b.jpg")
+        self.backFeatures = testCaffe(a, model)
+        self.customFeatures = testCaffe(b, model)
 
 
 RIDERfolder = "./files/RIDERS/"

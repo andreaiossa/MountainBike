@@ -1,5 +1,7 @@
 import numpy as np
 from cv2 import cv2
+from caffe.testCaffe import testCaffe
+from caffe.Caffe2Pytorch.caffe2pth.caffenet import *
 
 
 def istantiateSift():
@@ -85,3 +87,11 @@ def flann(img1, img2, des1, des2, kp1, kp2, min=10):
     img3 = cv2.drawMatches(img1, kp1, img2, kp2, good, None, **draw_params)
     cv2.imshow("FLANN", img3)
     cv2.waitKey(0)
+
+
+def resNetIstantiateModel():
+    model = CaffeNet('caffe/models/ResNet_50/ResNet_50_test.prototxt')
+    print(model)
+    model.load_state_dict(torch.load('caffe/test.pt'))
+
+    return model

@@ -44,7 +44,7 @@ def compute2DHist(img, mask=None, normalize=False, difference=False):
     s_ranges = [0, 256]
     ranges = h_ranges + s_ranges
 
-    hist = cv2.calcHist([static_image_HSV], channels, mask, [32, 32], ranges, accumulate=False)
+    hist = cv2.calcHist([static_image_HSV], channels, mask, [128, 8], ranges, accumulate=False)
     if not isinstance(difference, bool):
         hist = diffHist(hist, difference)
 
@@ -193,8 +193,13 @@ def fullHistComp(riders, fileName, channels=1, show=False):
                     refHist = np.float32(ref.backHist1D)
                     riderHist = np.float32(rider.customHist1D)
                 if channels == 2:
-                    refHist = np.float32(ref.backHist2D)
-                    riderHist = np.float32(rider.customHist2D)
+                    refHist = np.float32(ref.helmetHistBack2D)
+                    riderHist = np.float32(rider.helmetHistCustom2D)
+                
+                if channels == "feature":
+                    refHist = np.float32(ref.backFeatures)
+                    riderHist = np.float32(rider.customFeatures)
+
                 if show:
                     fig1 = plt.figure(f"REF: {ref.name}")
                     displayHist(refHist, fig1, mod=1)
