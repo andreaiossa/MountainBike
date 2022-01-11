@@ -6,7 +6,7 @@ import hist
 import utils
 import pickle
 import numpy as np
-from caffe.testCaffe import testCaffe
+from Cc.testCaffe import testCaffe
 from PIL import Image
 
 

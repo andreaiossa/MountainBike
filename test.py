@@ -13,10 +13,10 @@ from scipy.spatial import distance
 import utils
 import segmentation
 from PIL import Image
-from caffe.testCaffe import testCaffe
+from Cc.testCaffe import testCaffe
 import features
 
-from caffe.Caffe2Pytorch.caffe2pth.caffenet import *
+from Cc.caffe2py.caffenet import *
 from scipy.spatial import distance
 
 ### CREATE EMPYT RIDERS FROM FOLDER
