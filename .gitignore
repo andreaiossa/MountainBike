@@ -1,6 +1,7 @@
 # Custom
 
 files/
+weights/
 */yolov3.weights
 .DS_Store
 .Rhistory

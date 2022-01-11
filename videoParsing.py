@@ -1,12 +1,12 @@
-from cv2 import cv2
-import numpy as np
-from matplotlib import pyplot as plt
 import os
-from datetime import datetime as dt
 import time
 import datetime
-import segmentation
-import utils
+import numpy as np
+from cv2 import cv2
+from datetime import datetime as dt
+from matplotlib import pyplot as plt
+from components.segmentation import *
+from components.utils import *
 
 SAVE_FOLDER = "./files/temp"
 
@@ -238,7 +238,7 @@ def detectronOnVideo(video, predictor, refine=False, verbose=False, show=False):
         ret, frame = cap.read()
         if not ret:
             break
-        mask = segmentation.computeSegmentationMask(frame, predictor, refine, verbose=False)
+        mask = computeSegmentationMask(frame, predictor, refine, verbose=False)
         if not isinstance(mask, bool):
             frameAndMasks.append((frame, mask))
         frameAndMasksFull.append((frame, mask))

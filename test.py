@@ -1,23 +1,21 @@
-import time
-import cv2
-import cv2 as cv
-import numpy as np
-from matplotlib import pyplot as plt
-import preprocess
-import pickle
 import sys
-from tabulate import tabulate
-import hist
-import videoParsing
-from scipy.spatial import distance
-import utils
-import segmentation
+import cv2
+import time
+import pickle
+import numpy as np
 from PIL import Image
-from Cc.testCaffe import testCaffe
-import features
-
-from Cc.caffe2py.caffenet import *
 from scipy.spatial import distance
+from matplotlib import pyplot as plt
+from tabulate import tabulate
+from caffe.testCaffe import testCaffe
+from preprocess import *
+from videoParsing import *
+from components.hist import *
+from components.utils import *
+from components.features import *
+from components.segmentation import *
+from caffe.caffe2py.caffenet import *
+
 
 ### CREATE EMPYT RIDERS FROM FOLDER
 
@@ -47,7 +45,7 @@ from scipy.spatial import distance
 # # --------------------------------------------------------------------------------------- COMPARISON ------------------------------------------------------------------------------------------------------------------------------
 
 # hist.fullHistComp(riders, "features.txt", channels="feature")
-model = features.resNetIstantiateModel()
+model = resNetIstantiateModel()
 
 import torch
 import torch.nn as nn
@@ -81,7 +79,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 modelA = models.resnet50(pretrained=False)
 modelA.to(device)
-modelB = features.resNetIstantiateModel()
+modelB = resNetIstantiateModel()
 modelB.to(device)
 summary(modelB,(3,224,224))
 

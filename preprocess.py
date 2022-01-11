@@ -1,13 +1,13 @@
 import os
-from cv2 import cv2
-import segmentation
-import videoParsing
-import hist
-import utils
 import pickle
 import numpy as np
-from Cc.testCaffe import testCaffe
+from cv2 import cv2
 from PIL import Image
+from caffe.testCaffe import testCaffe
+from components.segmentation import *
+from videoParsing import *
+from components.hist import *
+from components.utils import *
 
 
 class rider():
@@ -49,11 +49,11 @@ class rider():
                     self.customVid = os.path.join(self.folder, file)
 
     def collectMasksCancelletto(self):
-        self.frameAndMasksBack, self.bgBack = videoParsing.backgroundSub(self.backVid, 0, 100000, 80, filterPerc=True)
-        # self.frameAndMasksFront, self.bgFront = videoParsing.backgroundSub(self.frontVid, 0, 100000, 80, filterPerc=True)
+        self.frameAndMasksBack, self.bgBack = backgroundSub(self.backVid, 0, 100000, 80, filterPerc=True)
+        # self.frameAndMasksFront, self.bgFront = backgroundSub(self.frontVid, 0, 100000, 80, filterPerc=True)
 
     def collectMasksVid(self):
-        self.frameAndMasksCustom, self.bgCustom = videoParsing.backgroundSub(self.customVid, 0, 100000, 80, filterPerc=True)
+        self.frameAndMasksCustom, self.bgCustom = backgroundSub(self.customVid, 0, 100000, 80, filterPerc=True)
 
     def collectHistsCancelletto(self, mod="standard", normalization=cv2.NORM_MINMAX):
         # self.frontHists1D = []
@@ -62,38 +62,38 @@ class rider():
         self.backHists2D = []
         if mod == "standard":
             # for frame, mask in self.frameAndMasksFront:
-            #     hist1D = hist.compute1DHist(frame, mask=mask, normalize=normalization)
-            #     hist2D = hist.compute2DHist(frame, mask=mask, normalize=normalization)
+            #     hist1D = compute1DHist(frame, mask=mask, normalize=normalization)
+            #     hist2D = compute2DHist(frame, mask=mask, normalize=normalization)
 
             #     self.frontHists1D.append(hist1D[0])
             #     self.frontHists2D.append(hist2D)
 
             for frame, mask in self.frameAndMasksBack:
-                hist1D = hist.compute1DHist(frame, mask=mask, normalize=normalization)
-                hist2D = hist.compute2DHist(frame, mask=mask, normalize=normalization)
+                hist1D = compute1DHist(frame, mask=mask, normalize=normalization)
+                hist2D = compute2DHist(frame, mask=mask, normalize=normalization)
 
                 self.backHists1D.append(hist1D[0])
                 self.backHists2D.append(hist2D)
         if mod == "diff":
             # for frame, mask in self.frameAndMasksFront:
-            #     hist1D = hist.compute1DHist(frame, mask=mask, normalize=normalization)
-            #     histBg1D = hist.compute1DHist(self.bgFront, mask=mask, normalize=normalization)
+            #     hist1D = compute1DHist(frame, mask=mask, normalize=normalization)
+            #     histBg1D = compute1DHist(self.bgFront, mask=mask, normalize=normalization)
 
-            #     H = hist.diffHist(hist1D[0], histBg1D[0])
+            #     H = diffHist(hist1D[0], histBg1D[0])
 
             #     self.frontHists1D.append(H)
 
             for frame, mask in self.frameAndMasksBack:
-                hist1D = hist.compute1DHist(frame, mask=mask)
-                histBg1D = hist.compute1DHist(self.bgBack, mask=mask)
-                hist2D = hist.compute2DHist(frame, mask=mask)
-                histBg2D = hist.compute2DHist(self.bgBack, mask=mask)
+                hist1D = compute1DHist(frame, mask=mask)
+                histBg1D = compute1DHist(self.bgBack, mask=mask)
+                hist2D = compute2DHist(frame, mask=mask)
+                histBg2D = compute2DHist(self.bgBack, mask=mask)
 
-                H = hist.diffHist(hist1D[0], histBg1D[0])
-                HS = hist.diffHist(hist2D, histBg2D)
+                H = diffHist(hist1D[0], histBg1D[0])
+                HS = diffHist(hist2D, histBg2D)
 
-                H = hist.histNormalize(H, normalize=normalization)
-                HS = hist.histNormalize(HS, normalize=normalization)
+                H = histNormalize(H, normalize=normalization)
+                HS = histNormalize(HS, normalize=normalization)
 
                 self.backHists1D.append(H)
                 self.backHists2D.append(HS)
@@ -103,36 +103,36 @@ class rider():
         self.customHists2D = []
         if mod == "standard":
             for frame, mask in self.frameAndMasksCustom:
-                hist1D = hist.compute1DHist(frame, mask=mask, normalize=normalization)
-                hist2D = hist.compute2DHist(frame, mask=mask, normalize=normalization)
+                hist1D = compute1DHist(frame, mask=mask, normalize=normalization)
+                hist2D = compute2DHist(frame, mask=mask, normalize=normalization)
 
                 self.customHists1D.append(hist1D)
                 self.customHists2D.append(hist2D)
         if mod == "diff":
             for frame, mask in self.frameAndMasksCustom:
-                hist1D = hist.compute1DHist(frame, mask=mask)
-                hist2D = hist.compute2DHist(frame, mask=mask)
-                histBg1D = hist.compute1DHist(self.bgCustom)
-                histBg2D = hist.compute2DHist(self.bgCustom)
+                hist1D = compute1DHist(frame, mask=mask)
+                hist2D = compute2DHist(frame, mask=mask)
+                histBg1D = compute1DHist(self.bgCustom)
+                histBg2D = compute2DHist(self.bgCustom)
 
-                H = hist.diffHist(hist1D, histBg1D)
-                HS = hist.diffHist(hist2D, histBg2D)
+                H = diffHist(hist1D, histBg1D)
+                HS = diffHist(hist2D, histBg2D)
 
-                H = hist.histNormalize(H, normalize=normalization)
-                HS = hist.histNormalize(HS, normalize=normalization)
+                H = histNormalize(H, normalize=normalization)
+                HS = histNormalize(HS, normalize=normalization)
 
                 self.customHists1D.append(H)
                 self.customHists2D.append(HS)
 
     def squashHist(self, mod="median"):
 
-        # self.frontHist1D = hist.squashHists(self.frontHists1D, mod)
-        self.backHist1D = hist.squashHists(self.backHists1D, mod)
-        self.customHist1D = hist.squashHists(self.customHists1D, mod)
+        # self.frontHist1D = squashHists(self.frontHists1D, mod)
+        self.backHist1D = squashHists(self.backHists1D, mod)
+        self.customHist1D = squashHists(self.customHists1D, mod)
 
-        # self.frontHist2D = hist.squashHists(self.frontHists2D, mod)
-        self.backHist2D = hist.squashHists(self.backHists2D, mod)
-        self.customHist2D = hist.squashHists(self.customHists2D, mod)
+        # self.frontHist2D = squashHists(self.frontHists2D, mod)
+        self.backHist2D = squashHists(self.backHists2D, mod)
+        self.customHist2D = squashHists(self.customHists2D, mod)
 
     def singleFrameCancelletto(self):
         maxDiff = 0
@@ -161,19 +161,19 @@ class rider():
                 maxDiff = percentageDiff
 
     def collectMaxHistBack(self, normalization):
-        self.topBack, self.bottomBack = segmentation.cutMask(self.maxMaskBack, mod="v", inverse=False, dim=6)
-        self.helmetHistBack2D = hist.compute2DHist(self.maxFrameBack, mask=self.topBack, normalize=normalization)
-        self.bottomHistBack2D = hist.compute2DHist(self.maxFrameBack, mask=self.bottomBack, normalize=normalization)
+        self.topBack, self.bottomBack = cutMask(self.maxMaskBack, mod="v", inverse=False, dim=6)
+        self.helmetHistBack2D = compute2DHist(self.maxFrameBack, mask=self.topBack, normalize=normalization)
+        self.bottomHistBack2D = compute2DHist(self.maxFrameBack, mask=self.bottomBack, normalize=normalization)
 
 
     def collectMaxHistCustom(self, normalization):
-        self.topCustom, self.bottomCustom = segmentation.cutMask(self.maxMaskCustom, mod="v", inverse=True, dim=6)
-        self.helmetHistCustom2D = hist.compute2DHist(self.maxFrameCustom, mask=self.topCustom, normalize=normalization)
-        self.bottomHistCustom2D = hist.compute2DHist(self.maxFrameCustom, mask=self.bottomCustom, normalize=normalization)
+        self.topCustom, self.bottomCustom = cutMask(self.maxMaskCustom, mod="v", inverse=True, dim=6)
+        self.helmetHistCustom2D = compute2DHist(self.maxFrameCustom, mask=self.topCustom, normalize=normalization)
+        self.bottomHistCustom2D = compute2DHist(self.maxFrameCustom, mask=self.bottomCustom, normalize=normalization)
 
     def collectResNetFeatures(self, model):
-        a = segmentation.cropImageBbox(self.maxFrameBack, self.maxFrameBackMask)
-        b = segmentation.cropImageBbox(self.maxFrameCustom, self.maxFrameCustomMask)
+        a = cropImageBbox(self.maxFrameBack, self.maxFrameBackMask)
+        b = cropImageBbox(self.maxFrameCustom, self.maxFrameCustomMask)
         
         cv2.imwrite("files/temp/a.jpg",a)
         cv2.imwrite("files/temp/b.jpg",b)
