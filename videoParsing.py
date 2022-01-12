@@ -217,6 +217,7 @@ def ROIBackgroundSub(video, start, end, tresh, show=False, verbose=False, saveMo
                 cv2.destroyAllWindows()
             subFrame = frame[int(box[1]):int(box[1] + box[3]), int(box[0]):int(box[0] + box[2])]
             fgmask = fgbg.apply(subFrame)
+            fgmask = cv2.threshold(fgmask, 200, 255, cv2.THRESH_BINARY)[1]
             cut = cv2.bitwise_and(subFrame, subFrame, mask=fgmask)
 
             if show:
