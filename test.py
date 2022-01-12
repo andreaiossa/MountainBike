@@ -83,7 +83,6 @@ modelB = resNetIstantiateModel()
 modelB.to(device)
 summary(modelB,(3,224,224))
 
-
 # hist.fullHistComp(riders, "bSub_8-8_HS_L2.txt", channels=2)
 
 # cv2.imshow("c", riders[0].bgCustom)

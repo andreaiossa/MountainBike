@@ -1,8 +1,9 @@
+import sys
 import numpy as np
 from matplotlib import pyplot as plt
-import sys
-import utils
 from tabulate import tabulate
+from components.utils import *
+from components.hist import *
 
 def fullHistComp(riders, fileName, channels=1, show=False):
     tables = []

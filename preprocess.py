@@ -49,11 +49,11 @@ class rider():
                     self.customVid = os.path.join(self.folder, file)
 
     def collectMasksCancelletto(self):
-        self.frameAndMasksBack, self.bgBack = backgroundSub(self.backVid, 0, 100000, 80, filterPerc=True)
+        self.frameAndMasksBack, self.bgBack = backgroundSub(self.backVid, 0, 100000, 80, size=(400,400), filterPerc=3)
         # self.frameAndMasksFront, self.bgFront = backgroundSub(self.frontVid, 0, 100000, 80, filterPerc=True)
 
     def collectMasksVid(self):
-        self.frameAndMasksCustom, self.bgCustom = backgroundSub(self.customVid, 0, 100000, 80, filterPerc=True)
+        self.frameAndMasksCustom, self.bgCustom = backgroundSub(self.customVid, 0, 100000, 80, size=(400,400), filterPerc=3)
 
     def collectHistsCancelletto(self, mod="standard", normalization=cv2.NORM_MINMAX):
         # self.frontHists1D = []
