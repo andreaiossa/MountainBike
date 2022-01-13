@@ -17,6 +17,10 @@ from components.segmentation import *
 from caffe.caffe2py.caffenet import *
 
 
+from sklearn.preprocessing import MinMaxScaler
+data = [1,23,53,2,0.1]
+print(min(data))
+
 ### CREATE EMPYT RIDERS FROM FOLDER
 
 # RIDERS = preprocess.collectRidersFolders()
@@ -45,7 +49,7 @@ from caffe.caffe2py.caffenet import *
 # # --------------------------------------------------------------------------------------- COMPARISON ------------------------------------------------------------------------------------------------------------------------------
 
 # hist.fullHistComp(riders, "features.txt", channels="feature")
-model = resNetIstantiateModel()
+# model = resNetIstantiateModel()
 
 import torch
 import torch.nn as nn
@@ -75,13 +79,13 @@ from torchsummary import summary
 #         x = torch.squeeze(x)
 #         x = self.classifier(x) #use our classifier.
 #         return x
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(device)
-modelA = models.resnet50(pretrained=False)
-modelA.to(device)
-modelB = resNetIstantiateModel()
-modelB.to(device)
-summary(modelB,(3,224,224))
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# print(device)
+# modelA = models.resnet50(pretrained=False)
+# modelA.to(device)
+# modelB = resNetIstantiateModel()
+# modelB.to(device)
+# summary(modelB,(3,224,224))
 
 # hist.fullHistComp(riders, "bSub_8-8_HS_L2.txt", channels=2)
 

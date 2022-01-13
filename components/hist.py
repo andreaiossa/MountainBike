@@ -4,7 +4,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 from scipy.spatial import distance
 import sys
-import utils
+from components.utils import *
 import seaborn as sns
 from tabulate import tabulate
 
@@ -33,7 +33,7 @@ def compute2DHist(img, mask=None, normalize=False, difference=False):
     Given img (BGR) and mask return the 8 bins histogram in HS color space
     '''
     if isinstance(mask, bool):
-        print(f"{utils.bcolors.presetWARNING} Impossible to compute histograms, given mask is empty")
+        print(f"{bcolors.presetWARNING} Impossible to compute histograms, given mask is empty")
         return
 
     img = cv2.imread(img) if isinstance(img, str) else img
@@ -66,7 +66,7 @@ def compute1DHist(img, mask=None, normalize=False):
     Given img (BGR) and mask return the 8 bins histogram for H and for S of HSV (separatly)
     '''
     if isinstance(mask, bool):
-        print(f"{utils.bcolors.presetWARNING} Impossible to compute histograms, given mask is empty")
+        print(f"{bcolors.presetWARNING} Impossible to compute histograms, given mask is empty")
         return
 
     img = cv2.imread(img) if isinstance(img, str) else img
@@ -125,7 +125,7 @@ def squashHists(hists, mod="median"):
     shape = hists[0].shape
     for hist in hists:
         if hist.shape != shape:
-            print(f"{utils.bcolors.presetERROR} Histograms need to be of same shape (bins) to average them")
+            print(f"{bcolors.presetERROR} Histograms need to be of same shape (bins) to average them")
             return
     outHist = np.zeros(shape)
     if mod == "median":
@@ -152,7 +152,7 @@ def squashHists(hists, mod="median"):
 def diffHist(hist1, hist2):
 
     if hist1.shape != hist2.shape:
-        print(f"{utils.bcolors.presetERROR} Histograms need to be of same shape (bins) to difference them")
+        print(f"{bcolors.presetERROR} Histograms need to be of same shape (bins) to difference them")
         return
     shape = hist1.shape
     outHist = np.zeros(shape)

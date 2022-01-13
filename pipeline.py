@@ -2,16 +2,16 @@ import sys
 import numpy as np
 from matplotlib import pyplot as plt
 from tabulate import tabulate
+from sklearn.preprocessing import MinMaxScaler
 from components.utils import *
 from components.hist import *
 
-def fullHistComp(riders, fileName, channels=1, show=False):
+def fullHistComp(riders, fileName, channels=1, show=False, position=False):
     tables = []
     headers = []
     for rider in riders:
         headers.append(rider.name)
-
-    for metricTuple in utils.metrics:
+    for metricTuple in metrics:
         metric = metricTuple[0]
         mod = metricTuple[1]
         metricName = metricTuple[2]
@@ -22,22 +22,26 @@ def fullHistComp(riders, fileName, channels=1, show=False):
         scoreIn1 = 0
         scoreIn3 = 0
         scoreIn5 = 0
+        riderIndex = 0
         table = []
-        for ref in riders:
+        for rider in riders:
+            riderIndex += 1
             tmpRow = []
-            row = [ref.name]
+            row = [rider.name]
             shouldMatch = None
             results = []
-            refHists = ref.squashHists
-            refFeature = ref.resNetFeatures
-            for rider in riders:
-                riderHists = rider.squashHists
-                riderFeature = rider.resNetFeatures
+            riderHists = rider.squashHists
+            riderFeature = rider.resNetFeatures
+            refIndex = 0
+            for ref in riders:
+                refIndex += 1
+                refHists = ref.squashHists
+                refFeature = ref.resNetFeatures
                 if channels == 1:
                     refHist = np.float32(refHists["back"][0])
-                    riderHist = np.float32(refHists["custom"][0])
+                    riderHist = np.float32(riderHists["custom"][0])
                 if channels == 2:
-                    refHist = np.float32(riderHists["custom"][1])
+                    refHist = np.float32(refHists["custom"][1])
                     riderHist = np.float32(riderHists["back"][1])               
                 if channels == "feature":
                     refHist = np.float32(refFeature["back"])
@@ -58,6 +62,11 @@ def fullHistComp(riders, fileName, channels=1, show=False):
                     result = compareHistCV(riderHist, refHist, metric)
                 elif fun == "PY":
                     result = compareHistPY(riderHist, refHist, metric)
+                if position:
+                    result = minMax(result)
+                    indexDistance = abs(refIndex - riderIndex) / 10
+                    result = position*result + (1-position)*indexDistance
+
                 results.append((rider.name, result))
                 if rider.name == ref.name:
                     shouldMatch = result
@@ -75,14 +84,14 @@ def fullHistComp(riders, fileName, channels=1, show=False):
 
             for r in tmpRow:
                 if r == shouldMatch and r == best:
-                    row.append(f"{utils.bcolors.OKBLUE}{r}{utils.bcolors.ENDC}")
+                    row.append(f"{bcolors.OKBLUE}{r}{bcolors.ENDC}")
                 elif r == best:
-                    row.append(f"{utils.bcolors.OKCYAN}{r}{utils.bcolors.ENDC}")
+                    row.append(f"{bcolors.OKCYAN}{r}{bcolors.ENDC}")
                 else:
                     row.append(r)
             table.append(row)
 
-        table.append([f"{utils.bcolors.OKGREEN}{metricName}", f"Score in 1: {scoreIn1}/10", f"Score in 3: {scoreIn3}/10", f"Score in 5: {scoreIn5}/10 " f"better is {mod}{utils.bcolors.ENDC}"])
+        table.append([f"{bcolors.OKGREEN}{metricName}", f"Score in 1: {scoreIn1}/10", f"Score in 3: {scoreIn3}/10", f"Score in 5: {scoreIn5}/10 " f"better is {mod}{bcolors.ENDC}"])
         tables.append(table)
 
     original_stdout = sys.stdout
@@ -93,13 +102,13 @@ def fullHistComp(riders, fileName, channels=1, show=False):
             print("\n")
         sys.stdout = original_stdout
 
-def fullHistCompHelmet(riders, fileName, coeff=0.5):
+def fullHistCompHelmet(riders, fileName, coeff=0.5, position=False):
     tables = []
     headers = []
     for rider in riders:
         headers.append(rider.name)
 
-    for metricTuple in utils.metrics:
+    for metricTuple in metrics:
         metric = metricTuple[0]
         mod = metricTuple[1]
         metricName = metricTuple[2]
@@ -110,15 +119,19 @@ def fullHistCompHelmet(riders, fileName, coeff=0.5):
         scoreIn1 = 0
         scoreIn3 = 0
         scoreIn5 = 0
+        riderIndex = 0
         table = []
-        for ref in riders:
+        for rider in riders:
+            riderIndex += 1
             tmpRow = []
-            row = [ref.name]
+            row = [rider.name]
             shouldMatch = None
             results = []
-            refHists = ref.maxHists
-            for rider in riders:
-                riderHists = rider.maxHists
+            riderHists = rider.maxHists
+            refIndex = 0
+            for ref in riders:
+                refIndex += 1
+                refHists = ref.maxHists
                 refHistHelmet = np.float32(refHists["back"][0])
                 refHistBody = np.float32(refHists["back"][1])
                 riderHistHelmet = np.float32(riderHists["custom"][0])
@@ -137,6 +150,10 @@ def fullHistCompHelmet(riders, fileName, coeff=0.5):
                     resultHelmet = compareHistPY(riderHistHelmet, refHistHelmet, metric)
                     resultBody = compareHistPY(riderHistBody, refHistBody, metric)
                     result = (1-coeff)*resultHelmet + coeff*resultBody
+                if position:
+                    result = minMax(result)
+                    indexDistance = abs(refIndex - riderIndex) / 10
+                    result = position*result + (1-position)*indexDistance
                 results.append((rider.name, result))
                 if rider.name == ref.name:
                     shouldMatch = result
@@ -154,15 +171,14 @@ def fullHistCompHelmet(riders, fileName, coeff=0.5):
 
             for r in tmpRow:
                 if r == shouldMatch and r == best:
-                    row.append(f"{utils.bcolors.OKBLUE}{r}{utils.bcolors.ENDC}")
+                    row.append(f"{bcolors.OKBLUE}{r}{bcolors.ENDC}")
                 elif r == best:
-                    row.append(f"{utils.bcolors.OKCYAN}{r}{utils.bcolors.ENDC}")
+                    row.append(f"{bcolors.OKCYAN}{r}{bcolors.ENDC}")
                 else:
                     row.append(r)
             table.append(row)
 
-
-        table.append([f"{utils.bcolors.OKGREEN}{metricName}", f"Score in 1: {scoreIn1}/10", f"Score in 3: {scoreIn3}/10", f"Score in 5: {scoreIn5}/10 " f"better is {mod}{utils.bcolors.ENDC}"])
+        table.append([f"{bcolors.OKGREEN}{metricName}", f"Score in 1: {scoreIn1}/10", f"Score in 3: {scoreIn3}/10", f"Score in 5: {scoreIn5}/10 " f"better is {mod}{bcolors.ENDC}"])
         tables.append(table)
 
     original_stdout = sys.stdout

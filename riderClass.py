@@ -128,12 +128,12 @@ def collectRiders():
     Returns:
         [rider]: array of rider class
     """
-    print(f"{utils.bcolors.presetINFO} extracting pickles...")
+    print(f"{bcolors.presetINFO} extracting pickles...")
     riders = []
     for file in os.listdir(picklesFolder):
         rider = pickle.load(open(picklesFolder + file, "rb"))
         riders.append(rider)
-    print(f"{utils.bcolors.presetINFO} Done")
+    print(f"{bcolors.presetINFO} Done")
     return riders
 
 
@@ -165,7 +165,7 @@ def updateRiders(riders):
     tot = len(riders)
     for rider in riders:
         counter += 1
-        print(f"{utils.bcolors.presetINFO} Processing {counter}/{tot}...")
+        print(f"{bcolors.presetINFO} Processing {counter}/{tot}...")
         rider.processFiles()
 
         pickle.dump(rider, open(picklesFolder + f"{rider.name}.p", "wb"))
@@ -187,7 +187,7 @@ def checkMasks(frameAndMask):
     for frame, mask in frameAndMask:
         if not isinstance(mask, bool):
             cut = cv2.bitwise_and(frame, frame, mask=mask)
-            utils.showImgs([frame, mask, cut])
+            showImgs([frame, mask, cut])
         else:
-            utils.showImgs([frame])
+            showImgs([frame])
         cv2.destroyAllWindows()

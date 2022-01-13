@@ -2,14 +2,14 @@ from cv2 import cv2
 import numpy as np
 from os.path import isfile
 from PIL import Image
-import utils
+from components.utils import *
 
 try:
     from detectron2 import model_zoo
     from detectron2.config import get_cfg
     from detectron2.engine import DefaultPredictor
 except ImportError as error:
-    print(error.__class__.__name__ + ": " + error.message)
+    print(f"{bcolors.presetWARNING} Detectron2 library not found, some functionalities may not work")
 
 # def instantiatePredictor():
 #     '''
@@ -42,9 +42,9 @@ def computeSegmentationMask(image, predictor, refine=False, CocoClass=0, verbose
     instancesOfClass = instances[instances.pred_classes == CocoClass]
 
     if verbose:
-        print("{} Classes found: {}".format(utils.bcolors.presetINFO, outputs["instances"].pred_classes))
-        print(f"{utils.bcolors.presetINFO} Number of objects found: {len(instances)}")
-        print(f"{utils.bcolors.presetINFO} Number of objects of selected class found: {len(instancesOfClass)}")
+        print("{} Classes found: {}".format(bcolors.presetINFO, outputs["instances"].pred_classes))
+        print(f"{bcolors.presetINFO} Number of objects found: {len(instances)}")
+        print(f"{bcolors.presetINFO} Number of objects of selected class found: {len(instancesOfClass)}")
 
     if len(instancesOfClass.pred_masks) > 0:
         mask = instancesOfClass.pred_masks[0]
@@ -61,7 +61,7 @@ def computeSegmentationMask(image, predictor, refine=False, CocoClass=0, verbose
 
         return mask
     else:
-        print(f"{utils.bcolors.presetWARNING} No objects of given class found")
+        print(f"{bcolors.presetWARNING} No objects of given class found")
         return False
 
 
