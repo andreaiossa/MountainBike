@@ -8,7 +8,7 @@ from scipy.spatial import distance
 from matplotlib import pyplot as plt
 from tabulate import tabulate
 from caffe.testCaffe import testCaffe
-from preprocess import *
+from riderClass import *
 from videoParsing import *
 from components.hist import *
 from components.utils import *

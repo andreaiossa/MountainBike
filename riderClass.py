@@ -101,7 +101,7 @@ class rider():
         hist2D = squashHists(hists2D, mod)
         self.squashHists[name] = (hist1D, hist2D)
 
-    def collectMaxHistBack(self, name, normalization, mod="v", inverse=False):
+    def collectMaxHist(self, name, normalization, mod="v", inverse=False):
         #   Check that mod (vertical etc..) is suited for the fm
         fm = self.framesAndMasks[name]
         helmet, body = cutMask(fm.maxMask, mod=mod, inverse=inverse, dim=6)

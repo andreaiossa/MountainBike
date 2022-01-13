@@ -28,17 +28,20 @@ def fullHistComp(riders, fileName, channels=1, show=False):
             row = [ref.name]
             shouldMatch = None
             results = []
+            refHists = ref.squashHists
+            refFeature = ref.resNetFeatures
             for rider in riders:
+                riderHists = rider.squashHists
+                riderFeature = rider.resNetFeatures
                 if channels == 1:
-                    refHist = np.float32(ref.backHist1D)
-                    riderHist = np.float32(rider.customHist1D)
+                    refHist = np.float32(refHists["back"][0])
+                    riderHist = np.float32(refHists["custom"][0])
                 if channels == 2:
-                    refHist = np.float32(ref.helmetHistBack2D)
-                    riderHist = np.float32(rider.helmetHistCustom2D)
-                
+                    refHist = np.float32(riderHists["custom"][1])
+                    riderHist = np.float32(riderHists["back"][1])               
                 if channels == "feature":
-                    refHist = np.float32(ref.backFeatures)
-                    riderHist = np.float32(rider.customFeatures)
+                    refHist = np.float32(refFeature["back"])
+                    riderHist = np.float32(riderFeature["custom"])
 
                 if show:
                     fig1 = plt.figure(f"REF: {ref.name}")
@@ -47,6 +50,7 @@ def fullHistComp(riders, fileName, channels=1, show=False):
                     fig1 = plt.figure(rider.name)
                     displayHist(riderHist, fig1, mod=1)
                     plt.show()
+
                 if softmax:
                     refHist = softMaxHist(refHist)
                     riderHist = softMaxHist(riderHist)
@@ -89,7 +93,7 @@ def fullHistComp(riders, fileName, channels=1, show=False):
             print("\n")
         sys.stdout = original_stdout
 
-def fullHistCompHelmet(riders, fileName, show=False):
+def fullHistCompHelmet(riders, fileName, coeff=0.5):
     tables = []
     headers = []
     for rider in riders:
@@ -112,33 +116,32 @@ def fullHistCompHelmet(riders, fileName, show=False):
             row = [ref.name]
             shouldMatch = None
             results = []
+            refHists = ref.maxHists
             for rider in riders:
-                
-                refHistHelmet = np.float32(ref.helmetHistBack2D)
-                refHistBottom = np.float32(ref.bottomHistBack2D)
-                riderHistHelmet = np.float32(rider.helmetHistCustom2D)
-                riderHistBottom = np.float32(rider.bottomHistCustom2D)
+                riderHists = rider.maxHists
+                refHistHelmet = np.float32(refHists["back"][0])
+                refHistBody = np.float32(refHists["back"][1])
+                riderHistHelmet = np.float32(riderHists["custom"][0])
+                riderHistBody = np.float32(riderHists["custom"][1])
 
                 if softmax:
                     refHistHelmet = softMaxHist(refHistHelmet)
-                    refHistBottom = softMaxHist(refHistBottom)
+                    refHistBody = softMaxHist(refHistBody)
                     riderHistHelmet = softMaxHist(riderHistHelmet)
-                    riderHistBottom = softMaxHist(riderHistBottom)
+                    riderHistBody = softMaxHist(riderHistBody)
                 if fun == "CV":
                     resultHelmet = compareHistCV(riderHistHelmet, refHistHelmet, metric)
-                    resultBottom = compareHistCV(riderHistBottom, refHistBottom, metric)
-                    result = 0.5*resultHelmet + 0.5*resultBottom
+                    resultBody = compareHistCV(riderHistBody, refHistBody, metric)
+                    result = (1-coeff)*resultHelmet + coeff*resultBody
                 elif fun == "PY":
                     resultHelmet = compareHistPY(riderHistHelmet, refHistHelmet, metric)
-                    resultBottom = compareHistPY(riderHistBottom, refHistBottom, metric)
-                    result = 0.5*resultHelmet + 0.5*resultBottom
+                    resultBody = compareHistPY(riderHistBody, refHistBody, metric)
+                    result = (1-coeff)*resultHelmet + coeff*resultBody
                 results.append((rider.name, result))
                 if rider.name == ref.name:
                     shouldMatch = result
 
                 tmpRow.append(result)
-
-
 
             sortedResults = sorted(results, key=lambda x: x[1]) if mod == "min" else sorted(results, reverse=True, key=lambda x: x[1])
             sortedRiders = list(map(lambda x: x[0], sortedResults))
