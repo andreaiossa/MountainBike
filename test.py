@@ -55,6 +55,24 @@ import torch
 import torch.nn as nn
 from torchvision import models
 from torchsummary import summary
+import numpy as np
+from scipy.stats import *
+from matplotlib import pyplot as plt
+
+# a = [x for x in range(-9, 10)]
+# a = np.array(a)
+# print(a.mean())
+# print(a.std())
+# b = norm(a.mean(), a.std())
+
+# plt.plot(a, b.pdf(a),
+#        'r-', lw=5, alpha=0.6, label='norm pdf')
+
+# plt.show()
+
+
+ROIBackgroundSub("./files/rawVideos/316_0001.MP4", 8000, -1, 80, "turn", position=1 )
+
 
 # Define the ResNet50-based Model
 # class ft_net(nn.Module):

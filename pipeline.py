@@ -6,11 +6,26 @@ from sklearn.preprocessing import MinMaxScaler
 from components.utils import *
 from components.hist import *
 
-def fullHistComp(riders, fileName, channels=1, show=False, position=False):
+def gaussian(times):
+   
+    times = np.array(times)
+    mean = times.mean()
+    std = times.std()
+    gaus = norm(mean, std)
+
+    return gaus
+
+
+def fullHistComp(riders, fileName, name, channels=1,show=False, position=False):
     tables = []
     headers = []
+    times = []
     for rider in riders:
         headers.append(rider.name)
+        times.append(rider.times[name][0])
+    
+    gaus = gaussian(times)
+
     for metricTuple in metrics:
         metric = metricTuple[0]
         mod = metricTuple[1]
@@ -39,13 +54,13 @@ def fullHistComp(riders, fileName, channels=1, show=False, position=False):
                 refFeature = ref.resNetFeatures
                 if channels == 1:
                     refHist = np.float32(refHists["back"][0])
-                    riderHist = np.float32(riderHists["custom"][0])
+                    riderHist = np.float32(riderHists[name][0])
                 if channels == 2:
-                    refHist = np.float32(refHists["custom"][1])
-                    riderHist = np.float32(riderHists["back"][1])               
+                    refHist = np.float32(refHists["back"][1])
+                    riderHist = np.float32(riderHists[name][1])               
                 if channels == "feature":
                     refHist = np.float32(refFeature["back"])
-                    riderHist = np.float32(riderFeature["custom"])
+                    riderHist = np.float32(riderFeature[name])
 
                 if show:
                     fig1 = plt.figure(f"REF: {ref.name}")
@@ -64,8 +79,8 @@ def fullHistComp(riders, fileName, channels=1, show=False, position=False):
                     result = compareHistPY(riderHist, refHist, metric)
                 if position:
                     result = minMax(result)
-                    indexDistance = abs(refIndex - riderIndex) / 10
-                    result = position*result + (1-position)*indexDistance
+                    weight = gaus.pdf(ref.times[name])
+                    result = result*weight
 
                 results.append((rider.name, result))
                 if rider.name == ref.name:
@@ -102,11 +117,15 @@ def fullHistComp(riders, fileName, channels=1, show=False, position=False):
             print("\n")
         sys.stdout = original_stdout
 
-def fullHistCompHelmet(riders, fileName, coeff=0.5, position=False):
+def fullHistCompHelmet(riders, fileName, name, coeff=0.5, position=False):
     tables = []
     headers = []
+    times = []
     for rider in riders:
         headers.append(rider.name)
+        times.append(rider.times[name][0])
+    
+    gaus = gaussian(times)
 
     for metricTuple in metrics:
         metric = metricTuple[0]
@@ -134,8 +153,8 @@ def fullHistCompHelmet(riders, fileName, coeff=0.5, position=False):
                 refHists = ref.maxHists
                 refHistHelmet = np.float32(refHists["back"][0])
                 refHistBody = np.float32(refHists["back"][1])
-                riderHistHelmet = np.float32(riderHists["custom"][0])
-                riderHistBody = np.float32(riderHists["custom"][1])
+                riderHistHelmet = np.float32(riderHists[name][0])
+                riderHistBody = np.float32(riderHists[name][1])
 
                 if softmax:
                     refHistHelmet = softMaxHist(refHistHelmet)
@@ -152,8 +171,9 @@ def fullHistCompHelmet(riders, fileName, coeff=0.5, position=False):
                     result = (1-coeff)*resultHelmet + coeff*resultBody
                 if position:
                     result = minMax(result)
-                    indexDistance = abs(refIndex - riderIndex) / 10
-                    result = position*result + (1-position)*indexDistance
+                    weight = gaus.pdf(ref.times[name])
+                    result = result*weight
+                
                 results.append((rider.name, result))
                 if rider.name == ref.name:
                     shouldMatch = result

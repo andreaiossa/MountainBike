@@ -58,39 +58,47 @@ class rider():
         self.name = name
         self.folder = folder
         self.files = os.listdir(folder)
-        self.backImg = None
-        self.backVid = None
-        self.frontImg = None
-        self.frontVid = None
-        self.customImg = None
-        self.customVid = None
+        self.videoOrder = []
+        self.times = {}
+        self.imgs = {}
+        self.vids = {}
         self.maxHists = {}
         self.squashHists = {}
         self.framesAndMasks = {}
         self.resNetFeatures = {}
         
-    def processFiles(self, customFile=None):
-        if not customFile:
-            for file in self.files:
-                if file.find("id_front.jpg") != -1:
-                    self.frontImg = cv2.imread(os.path.join(self.folder, file))
-                if file.find("id_back.jpg") != -1:
-                    self.backImg = cv2.imread(os.path.join(self.folder, file))
-                if file.find("id_front.avi") != -1:
-                    self.frontVid = os.path.join(self.folder, file)
-                if file.find("id_back.avi") != -1:
-                    self.backVid = os.path.join(self.folder, file)
+    def processFiles(self):
+        
+        for file in self.files:
+            if file.find("front.jpg") != -1:
+                self.imgs["front"] = cv2.imread(os.path.join(self.folder, file))
+            if file.find("id_back.jpg") != -1:
+                self.imgs["back"] = cv2.imread(os.path.join(self.folder, file))
+            if file.find("id_front.avi") != -1:
+                self.vids["front"] = os.path.join(self.folder, file)
+                fz = file.split('_')
+                self.times["front"] = (fz[2], fz[3] - fz[2])
+            if file.find("id_back.avi") != -1:
+                self.vids["back"] = os.path.join(self.folder, file)
+                fz = file.split('_')
+                self.times["back"] = (fz[2], fz[3] - fz[2])
 
-        else:
-            for file in self.files:
-                if file.find(customFile + ".jpg") != -1:
-                    self.customImg = cv2.imread(os.path.join(self.folder, file))
-                if file.find(customFile + ".avi") != -1:
-                    self.customVid = os.path.join(self.folder, file)
-
-    def collectFM(self, name, video, tresh, size, filterPerc):
+    def collectFM(self, name, tresh, size, filterPerc):
         # ES: back, self.backVid,80, (400,400), 3
-        self.framesAndMasks[name] = fm(video, tresh, size, filterPerc)
+        if name != "front" or name != "back":
+            self.videoOrder.append(name)
+            for file in self.files:
+                if file.find(name + ".jpg") != -1:
+                    self.imgs[name] = cv2.imread(os.path.join(self.folder, file))
+                if file.find(name + ".avi") != -1:
+                    self.vids[name] = os.path.join(self.folder, file)
+                    fz = file.split('_')
+                    position = self.videoOrder.index(name)
+                    precTime = self.times[position-1]
+                    self.times[name] = (precTime[1]+fz[2], fz[3] - fz[2])
+                    self.framesAndMasks[name] = fm(file, tresh, size, filterPerc)
+        else:
+            self.framesAndMasks[name] = fm(self.vids[name], tresh, size, filterPerc)
 
     def squashHist(self, name, mod="median"):
         

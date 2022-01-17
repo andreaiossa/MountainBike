@@ -152,7 +152,7 @@ def backgroundSub(video, start, end, tresh, size=False, filterPerc=False, show=F
 
     return framesAndMasks, bgFrame
 
-def ROIBackgroundSub(video, start, end, tresh, show=False, verbose=False, saveMod=False, percenteDiff=6, cutFrames=(70,25)):
+def ROIBackgroundSub(video, start, end, tresh, name, position=0,show=False, verbose=True, saveMod=2, percenteDiff=6, cutFrames=(70,25)):
     """
     Apply background substraction to given video in the ROI selected. Number of frames is relative to the maximum point of the movement in the bbsub.
 
@@ -173,18 +173,18 @@ def ROIBackgroundSub(video, start, end, tresh, show=False, verbose=False, saveMo
     """
 
     if saveMod:
-        now = dt.today().strftime('%Y-%m-%d-%H-%M-%S')
-        newPath = SAVE_FOLDER + f"/BS_{now}"
+        now = dt.today().strftime('%m-%d-%H-%M')
+        newPath = SAVE_FOLDER + f"/BS_{name}_{now}"
         os.makedirs(newPath)
 
     cap, length, fps, duration = videoInfo(video)
-    end = length if end > length else end
+    end = length if end > length or end== -1  else end
 
     print(f"{bcolors.presetINFO} number of frames: {length}")
     print(f"{bcolors.presetINFO} video duration is {duration} minutes")
 
     cap.set(1, start)
-    fgbg = cv2.createBackgroundSubtractorMOG2(varThreshold=tresh, detectShadows=False)
+    fgbg = cv2.createBackgroundSubtractorMOG2(varThreshold=tresh, detectShadows=True)
 
     exTime = 0
     counter = 0
@@ -262,22 +262,22 @@ def ROIBackgroundSub(video, start, end, tresh, show=False, verbose=False, saveMo
 
     if saveMod == 0:
         for r, m, c, count in ridersCapture:
-            cv2.imwrite(os.path.join(newPath, f'rider_{count}.jpg'), r)
-            cv2.imwrite(os.path.join(newPath, f'rider_mask_{count}.jpg'), m)
-            cv2.imwrite(os.path.join(newPath, f'rider_cut_{count}.jpg'), c)
+            cv2.imwrite(os.path.join(newPath, f'{count}_{name}.jpg'), r)
+            cv2.imwrite(os.path.join(newPath, f'{count}_mask_{name}.jpg'), m)
+            cv2.imwrite(os.path.join(newPath, f'{count}_cut_{name}.jpg'), c)
 
     if saveMod == 1:
         for f, c in ridersFrames:
-            cutVideo(video, f, fps, box,cutFrames, os.path.join(newPath, f'rider_vide_{c}.avi'))
+            cutVideo(video, f, fps, box,cutFrames, os.path.join(newPath, f'{c}_{start}_{f}_{end}_{position}_{name}.avi'))
 
     if saveMod == 2:
         for r, m, c, count in ridersCapture:
-            cv2.imwrite(os.path.join(newPath, f'rider_{count}.jpg'), r)
-            cv2.imwrite(os.path.join(newPath, f'rider_mask_{count}.jpg'), m)
-            cv2.imwrite(os.path.join(newPath, f'rider_cut_{count}.jpg'), c)
+            cv2.imwrite(os.path.join(newPath, f'{count}_{name}.jpg'), r)
+            cv2.imwrite(os.path.join(newPath, f'{count}_mask_{name}.jpg'), m)
+            cv2.imwrite(os.path.join(newPath, f'{count}_cut_{name}.jpg'), c)
         for f, c in ridersFrames:
             print(f"{bcolors.presetINFO} Processing video segment of {c} rider")
-            cutVideo(video, f, fps, box, os.path.join(newPath, f'rider_vide_{c}.avi'))
+            cutVideo(video, f, fps, box, cutFrames, os.path.join(newPath, f'{c}_{start}_{f}_{end}_{position}_{name}.avi'))
 
     cap.release()
     cv2.destroyAllWindows()
@@ -294,8 +294,8 @@ def detectronOnVideo(video, predictor, refine=False, verbose=False, show=False):
     '''
 
     cap, length, fps, duration = videoInfo(video)
-    print(f"{utils.bcolors.presetINFO} number of frames: {length}")
-    print(f"{utils.bcolors.presetINFO} video duration is {duration} minutes")
+    print(f"{bcolors.presetINFO} number of frames: {length}")
+    print(f"{bcolors.presetINFO} video duration is {duration} minutes")
     frameAndMasks = []
     frameAndMasksFull = []
     counter = 0
@@ -317,7 +317,7 @@ def detectronOnVideo(video, predictor, refine=False, verbose=False, show=False):
             avgTime = totTime / counter
             expTime = avgTime * (length - counter)
             expTime = str(datetime.timedelta(seconds=expTime)).split('.')[0]
-            print(f"{utils.bcolors.presetINFO} Current frame: {counter} over {length}, Avg Exp Time for frame: {round(avgTime,2)} sec, Exp time left {expTime}")
+            print(f"{bcolors.presetINFO} Current frame: {counter} over {length}, Avg Exp Time for frame: {round(avgTime,2)} sec, Exp time left {expTime}")
 
     return frameAndMasks, frameAndMasksFull
 
