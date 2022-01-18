@@ -44,7 +44,7 @@ def compute2DHist(img, mask=None, normalize=False, difference=False):
     s_ranges = [0, 256]
     ranges = h_ranges + s_ranges
 
-    hist = cv2.calcHist([static_image_HSV], channels, mask, [128, 8], ranges, accumulate=False)
+    hist = cv2.calcHist([static_image_HSV], channels, mask, [64, 32], ranges, accumulate=False)
     if not isinstance(difference, bool):
         hist = diffHist(hist, difference)
 
@@ -90,7 +90,7 @@ def compute1DHist(img, mask=None, normalize=False):
         cv2.normalize(histH, histH, norm_type=normalize)
         cv2.normalize(histS, histS, norm_type=normalize)
 
-    return histH
+    return histH, histS
 
 
 def softMaxHist(hist):
@@ -123,6 +123,7 @@ def displayHist(hist, fig, mod=1):
 
 def squashHists(hists, mod="median"):
     shape = hists[0].shape
+    print(shape)
     for hist in hists:
         if hist.shape != shape:
             print(f"{bcolors.presetERROR} Histograms need to be of same shape (bins) to average them")

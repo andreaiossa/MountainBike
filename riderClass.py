@@ -12,8 +12,8 @@ from components.utils import *
 
 class fm():
     def __init__(self,video, tresh,size, filterPerc):
-        self.Hists1D = []
-        self.Hists2D = []
+        self.hists1D = []
+        self.hists2D = []
         self.framesAndMasks, self.background = backgroundSub(video, 0, 100000, tresh, size=size, filterPerc=filterPerc)
 
     def singleFrameCancelletto(self):
@@ -36,8 +36,8 @@ class fm():
                 hist1D = compute1DHist(frame, mask=mask, normalize=normalization)
                 hist2D = compute2DHist(frame, mask=mask, normalize=normalization)
 
-                self.Hists1D.append(hist1D[0])
-                self.Hists2D.append(hist2D)
+                self.hists1D.append(hist1D[0])
+                self.hists2D.append(hist2D)
         if mod == "diff":
             for frame, mask in self.framesAndMasks:
                 hist1D = compute1DHist(frame, mask=mask)
@@ -50,8 +50,8 @@ class fm():
                 HS = diffHist(hist2D, histBg2D)
                 HS = histNormalize(HS, normalize=normalization)
 
-                self.Hists1D.append(H)
-                self.Hists2D.append(HS)
+                self.hists1D.append(H)
+                self.hists2D.append(HS)
 
 class rider():
     def __init__(self, name, folder):
@@ -59,7 +59,7 @@ class rider():
         self.folder = folder
         self.files = os.listdir(folder)
         self.videoOrder = []
-        self.times = {}
+        self.times = []
         self.imgs = {}
         self.vids = {}
         self.maxHists = {}
@@ -72,20 +72,20 @@ class rider():
         for file in self.files:
             if file.find("front.jpg") != -1:
                 self.imgs["front"] = cv2.imread(os.path.join(self.folder, file))
-            if file.find("id_back.jpg") != -1:
+            if file.find("back.jpg") != -1:
                 self.imgs["back"] = cv2.imread(os.path.join(self.folder, file))
-            if file.find("id_front.avi") != -1:
+            if file.find("front.avi") != -1:
                 self.vids["front"] = os.path.join(self.folder, file)
                 fz = file.split('_')
-                self.times["front"] = (fz[2], fz[3] - fz[2])
-            if file.find("id_back.avi") != -1:
+                self.times.append((int(fz[2]), int(fz[3]) - int(fz[2])))
+            if file.find("back.avi") != -1:
                 self.vids["back"] = os.path.join(self.folder, file)
                 fz = file.split('_')
-                self.times["back"] = (fz[2], fz[3] - fz[2])
+                self.times.append((int(fz[2]), int(fz[3]) - int(fz[2])))
 
     def collectFM(self, name, tresh, size, filterPerc):
         # ES: back, self.backVid,80, (400,400), 3
-        if name != "front" or name != "back":
+        if name != "front" and name != "back":
             self.videoOrder.append(name)
             for file in self.files:
                 if file.find(name + ".jpg") != -1:
@@ -95,9 +95,11 @@ class rider():
                     fz = file.split('_')
                     position = self.videoOrder.index(name)
                     precTime = self.times[position-1]
-                    self.times[name] = (precTime[1]+fz[2], fz[3] - fz[2])
-                    self.framesAndMasks[name] = fm(file, tresh, size, filterPerc)
+                    self.times.append((precTime[1]+int(fz[2]), int(fz[3]) - int(fz[2])))
+                    self.framesAndMasks[name] = fm(self.vids[name], tresh, size, filterPerc)
+                    
         else:
+            self.videoOrder.append(name)
             self.framesAndMasks[name] = fm(self.vids[name], tresh, size, filterPerc)
 
     def squashHist(self, name, mod="median"):
@@ -109,7 +111,7 @@ class rider():
         hist2D = squashHists(hists2D, mod)
         self.squashHists[name] = (hist1D, hist2D)
 
-    def collectMaxHist(self, name, normalization, mod="v", inverse=False):
+    def collectHelmetBodyHist(self, name, normalization, mod="v", inverse=False):
         #   Check that mod (vertical etc..) is suited for the fm
         fm = self.framesAndMasks[name]
         helmet, body = cutMask(fm.maxMask, mod=mod, inverse=inverse, dim=6)
@@ -156,8 +158,9 @@ def collectRidersFolders():
     for root, dirs, files in os.walk(RIDERfolder):
         for dirName in dirs:
             dirPath = os.path.join(root, dirName)
-            r = rider(dirName, dirPath)
-            riders.append(r)
+            if len(os.listdir(dirPath)) != 0:
+                r = rider(dirName, dirPath)
+                riders.append(r)
 
     return riders
 

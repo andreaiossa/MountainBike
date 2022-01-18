@@ -44,7 +44,6 @@ def downscaleVideo(video, size, path='./files/temp/test.avi' ):
     cap, length, fps, duration = videoInfo(video)
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     out = cv2.VideoWriter('./files/temp/test.avi', fourcc, fps, (400, 400))
-
     while True:
         ret, frame = cap.read()
         if ret == True:
@@ -152,7 +151,7 @@ def backgroundSub(video, start, end, tresh, size=False, filterPerc=False, show=F
 
     return framesAndMasks, bgFrame
 
-def ROIBackgroundSub(video, start, end, tresh, name, position=0,show=False, verbose=True, saveMod=2, percenteDiff=6, cutFrames=(70,25)):
+def ROIBackgroundSub(video, start, end, tresh, name, position=0,show=False, verbose=True, saveMod=2, percenteDiff=6, cutFrames=(70,25), skip=False):
     """
     Apply background substraction to given video in the ROI selected. Number of frames is relative to the maximum point of the movement in the bbsub.
 
@@ -210,6 +209,9 @@ def ROIBackgroundSub(video, start, end, tresh, name, position=0,show=False, verb
             key = cv2.waitKey(30) & 0xff
             if key == ord("s"):
                 box = cv2.selectROI("Frame", frame, fromCenter=False, showCrosshair=True)
+        
+        if skip and counter % 2 == 0:
+            continue
 
         if all(x is not None for x in [box, frame]):
             startT = time.time()

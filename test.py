@@ -18,8 +18,7 @@ from caffe.caffe2py.caffenet import *
 
 
 from sklearn.preprocessing import MinMaxScaler
-data = [1,23,53,2,0.1]
-print(min(data))
+
 
 ### CREATE EMPYT RIDERS FROM FOLDER
 
@@ -71,7 +70,7 @@ from matplotlib import pyplot as plt
 # plt.show()
 
 
-ROIBackgroundSub("./files/rawVideos/316_0001.MP4", 8000, -1, 80, "turn", position=1 )
+# ROIBackgroundSub("./files/rawVideos/turn2.MP4", 0, -1, 65, "turn", position=1 )
 
 
 # Define the ResNet50-based Model
@@ -278,3 +277,20 @@ ROIBackgroundSub("./files/rawVideos/316_0001.MP4", 8000, -1, 80, "turn", positio
 
 # dst = distance.euclidean(featureA, featureB)
 # print(dst)
+
+
+# -------------------------------
+
+riders = collectRidersFolders()
+riders = sorted(riders, key= lambda r: int(r.name.split("RIDER")[1]))
+
+for r in riders:
+    r.processFiles()
+    print(r.name)
+    r.collectFM("front", 80, (400,400), 3)
+    r.collectFM("turn", 80, (400,400), 3)
+    r.framesAndMasks["front"].collectHistsCancelletto()
+    r.framesAndMasks["turn"].collectHistsCancelletto()
+    r.squashHist("front")
+    r.squashHist("turn")
+updateRiders(riders)
