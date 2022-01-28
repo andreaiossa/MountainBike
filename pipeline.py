@@ -5,27 +5,32 @@ from tabulate import tabulate
 from sklearn.preprocessing import MinMaxScaler
 from components.utils import *
 from components.hist import *
+from scipy.stats import norm
 
 def gaussian(times):
    
     times = np.array(times)
     mean = times.mean()
     std = times.std()
-    gaus = norm(mean, std)
-
+    gaus = norm(mean, 0.4)
     return gaus
 
 
-def fullHistComp(riders, fileName, name, channels=1,show=False, position=False):
+def fullHistComp(riders, fileName, name, prec, channels=1,show=False, position=False):
     tables = []
     headers = []
     times = []
     for rider in riders:
         headers.append(rider.name)
-        times.append(rider.times[name][0])
-    
+        times.append(rider.times[name][0] + rider.times[prec][1])
+    times = np.array(times)
+    print(times)
+    mean = times.mean()
+    std = times.std()
+    times = zScore(times)
+    print(times)
     gaus = gaussian(times)
-
+    print(f"mean = {mean}, std = {std}")
     for metricTuple in metrics:
         metric = metricTuple[0]
         mod = metricTuple[1]
@@ -39,6 +44,7 @@ def fullHistComp(riders, fileName, name, channels=1,show=False, position=False):
         scoreIn5 = 0
         riderIndex = 0
         table = []
+        print("----------------------------------------")
         for rider in riders:
             riderIndex += 1
             tmpRow = []
@@ -48,18 +54,21 @@ def fullHistComp(riders, fileName, name, channels=1,show=False, position=False):
             riderHists = rider.squashHists
             riderFeature = rider.resNetFeatures
             refIndex = 0
+            weights = []
+            newTimes = []
+            newTimesN = []
             for ref in riders:
                 refIndex += 1
                 refHists = ref.squashHists
                 refFeature = ref.resNetFeatures
                 if channels == 1:
-                    refHist = np.float32(refHists["back"][0])
+                    refHist = np.float32(refHists[prec][0])
                     riderHist = np.float32(riderHists[name][0])
                 if channels == 2:
-                    refHist = np.float32(refHists["back"][1])
+                    refHist = np.float32(refHists[prec][1])
                     riderHist = np.float32(riderHists[name][1])               
                 if channels == "feature":
-                    refHist = np.float32(refFeature["back"])
+                    refHist = np.float32(refFeature[prec])
                     riderHist = np.float32(riderFeature[name])
 
                 if show:
@@ -78,20 +87,39 @@ def fullHistComp(riders, fileName, name, channels=1,show=False, position=False):
                 elif fun == "PY":
                     result = compareHistPY(riderHist, refHist, metric)
                 if position:
-                    result = minMax(result)
-                    weight = gaus.pdf(ref.times[name])
-                    result = result*weight
-
-                results.append((rider.name, result))
-                if rider.name == ref.name:
-                    shouldMatch = result
+                    refTime = ref.times[prec][1]
+                    riderTime = rider.times[name][0]
+                    newTimes.append(refTime + riderTime)
+                    newTimesN.append((refTime + riderTime-mean)/std)
+                    weight = gaus.pdf((refTime + riderTime-mean)/std)
+                    weights.append(weight)
+                else:
+                    results.append((ref.name, result))
+                    if rider.name == ref.name:
+                        shouldMatch = result
 
                 tmpRow.append(result)
+
+            if position:
+                print(tmpRow)
+                print(weights)
+                print(newTimes)
+                print(newTimesN)
+                for i in range(len(tmpRow)):
+                    # print(f"RIDER: {riders[i].name}, ROW: {(tmpRow[i])}, WEIGHT: {1-weights[i]}, TOTAL: {tmpRow[i]*(1-weights[i])}, {i}")
+                    tmpRow[i] = tmpRow[i]*(1-weights[i]) if mod == "min" else tmpRow[i]*(weights[i])
+                results = []
+                for i in range(len(riders)):
+                    results.append((riders[i].name, tmpRow[i]))
+                    if riders[i].name == rider.name:
+                        shouldMatch = tmpRow[i]
+
+                print("\n")
 
             sortedResults = sorted(results, key=lambda x: x[1]) if mod == "min" else sorted(results, reverse=True, key=lambda x: x[1])
             sortedRiders = list(map(lambda x: x[0], sortedResults))
             best = sortedResults[0][1]
-            refPosition = sortedRiders.index(ref.name)
+            refPosition = sortedRiders.index(rider.name)
 
             scoreIn1 = scoreIn1 + 1 if refPosition == 0 else scoreIn1
             scoreIn3 = scoreIn3 + 1 if refPosition <= 2 else scoreIn3

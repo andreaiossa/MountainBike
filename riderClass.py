@@ -59,7 +59,7 @@ class rider():
         self.folder = folder
         self.files = os.listdir(folder)
         self.videoOrder = []
-        self.times = []
+        self.times = {}
         self.imgs = {}
         self.vids = {}
         self.maxHists = {}
@@ -77,11 +77,11 @@ class rider():
             if file.find("front.avi") != -1:
                 self.vids["front"] = os.path.join(self.folder, file)
                 fz = file.split('_')
-                self.times.append((int(fz[2]), int(fz[3]) - int(fz[2])))
+                self.times["front"] = ((int(fz[2]), int(fz[3]) - int(fz[2])))
             if file.find("back.avi") != -1:
                 self.vids["back"] = os.path.join(self.folder, file)
                 fz = file.split('_')
-                self.times.append((int(fz[2]), int(fz[3]) - int(fz[2])))
+                self.times["back"] = ((int(fz[2]), int(fz[3]) - int(fz[2])))
 
     def collectFM(self, name, tresh, size, filterPerc):
         # ES: back, self.backVid,80, (400,400), 3
@@ -93,9 +93,8 @@ class rider():
                 if file.find(name + ".avi") != -1:
                     self.vids[name] = os.path.join(self.folder, file)
                     fz = file.split('_')
-                    position = self.videoOrder.index(name)
-                    precTime = self.times[position-1]
-                    self.times.append((precTime[1]+int(fz[2]), int(fz[3]) - int(fz[2])))
+
+                    self.times[name] = (int(fz[2]), int(fz[3]) - int(fz[2]))
                     self.framesAndMasks[name] = fm(self.vids[name], tresh, size, filterPerc)
                     
         else:

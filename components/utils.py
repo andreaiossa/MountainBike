@@ -47,17 +47,22 @@ def downscale(img):
 
     return cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
 
-def minMax(array):
-    min = min(array)
-    max = max(array)
+def minMax(array, a= 0, b =1):
+    mn = min(array)
+    mx = max(array)
     newArray = []
     for el in array:
-        newEl = (el-min)/(max-min)
+        newEl = a + (el-mn)*(b-a)/(mx-mn)
         newArray.append(newEl)
     
     return newArray
 
-metrics = [(distance.cosine, "min", "COSINE", "PY"), (distance.braycurtis, "min", "BRAYCURTIS", "PY"), (distance.chebyshev, "min", "CHEBYSHEV", "PY", "S"), (distance.minkowski, "min", "MINKOWSKI", "PY"), (distance.euclidean, "min", "EUCLIDIAN", "PY"), (distance.cityblock, "min", "MANATTHAM", "PY"), (cv2.HISTCMP_CORREL, "max", "CORRELATION", "CV"), (cv2.HISTCMP_INTERSECT, "max", "INTERSECTION", "CV"), (cv2.HISTCMP_CHISQR, "min", "CHISQR", "CV"), (cv2.HISTCMP_CHISQR_ALT, "min", "ALTERNATIVE CHISQR", "CV"), (cv2.HISTCMP_BHATTACHARYYA, "min", "BHATTACHARYYA", "CV", "S"), (cv2.HISTCMP_KL_DIV, "min", "KULLBACK-LEIBLER DIVERGENCE", "CV", "S"), (stats.wasserstein_distance, "min", "EARTH MOVER", "PY", "S")]
+def zScore(array):
+    newArray = stats.zscore(array)    
+    return newArray
+
+# metrics = [(distance.cosine, "min", "COSINE", "PY"), (distance.braycurtis, "min", "BRAYCURTIS", "PY"), (distance.chebyshev, "min", "CHEBYSHEV", "PY", "S"), (distance.minkowski, "min", "MINKOWSKI", "PY"), (distance.euclidean, "min", "EUCLIDIAN", "PY"), (distance.cityblock, "min", "MANATTHAM", "PY"), (cv2.HISTCMP_CORREL, "max", "CORRELATION", "CV"), (cv2.HISTCMP_INTERSECT, "max", "INTERSECTION", "CV"), (cv2.HISTCMP_CHISQR, "min", "CHISQR", "CV"), (cv2.HISTCMP_CHISQR_ALT, "min", "ALTERNATIVE CHISQR", "CV"), (cv2.HISTCMP_BHATTACHARYYA, "min", "BHATTACHARYYA", "CV", "S"), (cv2.HISTCMP_KL_DIV, "min", "KULLBACK-LEIBLER DIVERGENCE", "CV", "S"), (stats.wasserstein_distance, "min", "EARTH MOVER", "PY", "S")]
+metrics = [(cv2.HISTCMP_CHISQR_ALT, "min", "ALTERNATIVE CHISQR", "CV")]
 
 
 

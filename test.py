@@ -8,6 +8,7 @@ from scipy.spatial import distance
 from matplotlib import pyplot as plt
 from tabulate import tabulate
 from caffe.testCaffe import testCaffe
+from pipeline import fullHistComp
 from riderClass import *
 from videoParsing import *
 from components.hist import *
@@ -70,7 +71,7 @@ from matplotlib import pyplot as plt
 # plt.show()
 
 
-# ROIBackgroundSub("./files/rawVideos/turn2.MP4", 0, -1, 65, "turn", position=1 )
+# ROIBackgroundSub("./files/rawVideos/back3.MP4", 200, -1, 65, "back", skip=True)
 
 
 # Define the ResNet50-based Model
@@ -280,13 +281,12 @@ from matplotlib import pyplot as plt
 
 
 # -------------------------------
-
+'''
 riders = collectRidersFolders()
 riders = sorted(riders, key= lambda r: int(r.name.split("RIDER")[1]))
 
 for r in riders:
     r.processFiles()
-    print(r.name)
     r.collectFM("front", 80, (400,400), 3)
     r.collectFM("turn", 80, (400,400), 3)
     r.framesAndMasks["front"].collectHistsCancelletto()
@@ -294,3 +294,63 @@ for r in riders:
     r.squashHist("front")
     r.squashHist("turn")
 updateRiders(riders)
+'''
+
+# riders = collectRiders()
+# riders = sorted(riders, key= lambda r: int(r.name.split("RIDER")[1]))
+
+# fullHistComp(riders, "bb.txt", "turn", "front", channels=2, position=True)
+
+# from pipeline import gaussian
+
+# times = []
+# for rider in riders:    
+#     times.append(rider.times["turn"][0] + rider.times["front"][1])
+
+# times = np.array(times)
+# print(times)
+# print(f"MEAN= {times.mean()}, STD = {times.std()}")
+# times = zScore(times)
+# print(f"MEAN= {times.mean()}, STD = {times.std()}")
+
+# gaus = gaussian(times)
+
+# print(times)
+
+
+# # print(f"aa {times[0]}")
+# print(gaus.pdf(times[3]))
+# # print(gaus.pdf(111913))
+
+
+#----------
+
+#first 8 riders are back1   (52350 + 81990 ) 134340
+#next 2 are back2   (81990)
+
+
+# riders = collectRidersFolders()
+# riders = sorted(riders, key= lambda r: int(r.name.split("RIDER")[1]))
+
+# # riders = riders[0:8]
+
+# print(riders[-1].name)
+
+
+# for r in riders:
+
+#     r.processFiles()
+#     r.collectFM("back", 80, (400,400), 3)
+#     r.collectFM("para", 80, (400,400), 3)
+#     r.framesAndMasks["back"].collectHistsCancelletto()
+#     r.framesAndMasks["para"].collectHistsCancelletto()
+#     r.squashHist("back")
+#     r.squashHist("para")
+# updateRiders(riders)
+
+
+riders = collectRiders()
+riders = sorted(riders, key= lambda r: int(r.name.split("RIDER")[1]))
+riders = riders[0:8]
+fullHistComp(riders, "para_HS_64_32_n3.txt", "para", "back", channels=1, position=True)
+

@@ -123,7 +123,6 @@ def displayHist(hist, fig, mod=1):
 
 def squashHists(hists, mod="median"):
     shape = hists[0].shape
-    print(shape)
     for hist in hists:
         if hist.shape != shape:
             print(f"{bcolors.presetERROR} Histograms need to be of same shape (bins) to average them")
